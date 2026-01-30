@@ -17,6 +17,26 @@ export interface Plan {
   termMonths: number
 }
 
+/**
+ * Admin Plan interface - represents configurable plan parameters.
+ * All values come from the backend. No calculations performed here. * Null values for maxValueCents and maxDurationMonths mean indefinite (no limit).
+ */
+export interface AdminPlan {
+  id: string
+  title: string
+  description: string // Markdown text
+  minValueCents: number
+  maxValueCents: number | null // null = indefinite
+  minDurationMonths: number
+  maxDurationMonths: number | null // null = indefinite
+  adminTaxValueCents: number
+  insurancePercent: number // 0-100
+  guaranteeFundPercent1: number // 0-100
+  guaranteeFundPercent2: number // 0-100
+  guaranteeFundThresholdCents: number
+  active: boolean
+}
+
 export interface ClientDashboard {
   totalBalanceCents: number
   yieldThisMonthCents: number
@@ -99,6 +119,64 @@ export function useMockData() {
       minInvestmentCents: 50000, // R$ 500,00
       yieldRateMonthly: 0.018, // 1.8% (provided by backend)
       termMonths: 24
+    }
+  ]
+
+  // Admin plans - configuration parameters only (no calculations)
+  const adminPlans: AdminPlan[] = [
+    {
+      id: 'plan-geral',
+      title: 'Plano Geral',
+      description: `# Plano Geral
+
+Investimento com rendimentos mensais para todos os perfis de investidor.
+
+## Como funciona
+
+O Plano Geral oferece uma opção flexível de investimento com rendimentos baseados na poupança.
+
+## Vantagens
+
+- Flexibilidade de valores
+- Rendimentos mensais
+- Proteção do Fundo Garantidor`,
+      minValueCents: 100000, // R$ 1.000,00
+      maxValueCents: 10000000, // R$ 100.000,00
+      minDurationMonths: 6,
+      maxDurationMonths: 36,
+      adminTaxValueCents: 5000, // R$ 50,00
+      insurancePercent: 2.5,
+      guaranteeFundPercent1: 1.0,
+      guaranteeFundPercent2: 1.3,
+      guaranteeFundThresholdCents: 5000000, // R$ 50.000,00
+      active: true
+    },
+    {
+      id: 'plan-agricultor',
+      title: 'Pequeno Agricultor',
+      description: `# Pequeno Agricultor
+
+Plano especial com condições diferenciadas para pequenos agricultores.
+
+## Como funciona
+
+Condições especiais para agricultores com valores mínimos reduzidos.
+
+## Vantagens
+
+- Valores mínimos reduzidos
+- Taxa administrativa diferenciada
+- Suporte especializado`,
+      minValueCents: 50000, // R$ 500,00
+      maxValueCents: 5000000, // R$ 50.000,00
+      minDurationMonths: 12,
+      maxDurationMonths: 48,
+      adminTaxValueCents: 2500, // R$ 25,00
+      insurancePercent: 1.5,
+      guaranteeFundPercent1: 1.0,
+      guaranteeFundPercent2: 1.2,
+      guaranteeFundThresholdCents: 2500000, // R$ 25.000,00
+      active: true
     }
   ]
 
@@ -290,6 +368,7 @@ export function useMockData() {
 
   return {
     plans,
+    adminPlans,
     clientDashboard,
     installments,
     withdrawals,
@@ -301,8 +380,11 @@ export function useMockData() {
 
     // Helper functions to get data
     getPlanById: (id: string) => plans.find(p => p.id === id),
+    getAdminPlanById: (id: string) => adminPlans.find(p => p.id === id),
     getClientById: (id: string) => clients.find(c => c.id === id),
     filterClientsByStatus: (status: Client['status'] | 'all') =>
-      status === 'all' ? clients : clients.filter(c => c.status === status)
+      status === 'all' ? clients : clients.filter(c => c.status === status),
+    filterAdminPlansByTitle: (search: string) =>
+      adminPlans.filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
   }
 }

@@ -8,7 +8,8 @@ definePageMeta({
   middleware: ['auth']
 })
 
-const { clients, plans } = useMockData()
+const { clients } = useMockData()
+const { planSummaries, fetchPlanSummaries, isLoading: isPlansLoading } = usePlansApi()
 const toast = useToast()
 
 // Modal state
@@ -40,6 +41,12 @@ function handleAddClient(data: NewClientFormData) {
 const totalClients = computed(() => clients.length)
 const activeClients = computed(() => clients.filter(c => c.status === 'active').length)
 const defaultingClients = computed(() => clients.filter(c => c.status === 'defaulting').length)
+
+watch(isAddClientModalOpen, async (open) => {
+  if (open) {
+    await fetchPlanSummaries()
+  }
+})
 </script>
 
 <template>
@@ -144,6 +151,7 @@ const defaultingClients = computed(() => clients.filter(c => c.status === 'defau
           <UButton
             color="primary"
             variant="solid"
+            :loading="isPlansLoading"
             @click="isAddClientModalOpen = true"
           >
             <UIcon
@@ -164,7 +172,7 @@ const defaultingClients = computed(() => clients.filter(c => c.status === 'defau
     <!-- Add Client Modal -->
     <AdminAddClientModal
       v-model:open="isAddClientModalOpen"
-      :plans="plans"
+      :plans="planSummaries"
       @submit="handleAddClient"
       @close="isAddClientModalOpen = false"
     />

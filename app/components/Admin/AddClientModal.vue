@@ -8,10 +8,10 @@
  */
 
 import type { FormError } from '@nuxt/ui'
-import type { Plan } from '~/composables/useMockData'
+import type { PlanSummary } from '~/composables/usePlansApi'
 
 const props = defineProps<{
-  plans: Plan[]
+  plans: readonly PlanSummary[]
 }>()
 
 const emit = defineEmits<{
@@ -43,7 +43,7 @@ const isLoading = ref(false)
 const planOptions = computed(() =>
   props.plans.map(plan => ({
     value: plan.id,
-    label: plan.name
+    label: plan.title
   }))
 )
 

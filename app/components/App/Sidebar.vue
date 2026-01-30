@@ -41,6 +41,11 @@ const adminNavItems = [
     label: 'Relatórios',
     icon: 'i-lucide-file-spreadsheet',
     to: '/admin/reports'
+  },
+  {
+    label: 'Planos',
+    icon: 'i-lucide-clipboard-list',
+    to: '/admin/plans'
   }
 ]
 
@@ -77,7 +82,10 @@ function isActive(path: string): boolean {
             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
         ]"
       >
-        <UIcon :name="item.icon" class="w-5 h-5" />
+        <UIcon
+          :name="item.icon"
+          class="w-5 h-5"
+        />
         {{ item.label }}
       </NuxtLink>
     </nav>

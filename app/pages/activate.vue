@@ -360,7 +360,7 @@ async function handleSubmit(event: { data: Schema }) {
         </div>
       </div>
     </div>
-    <UNotifications />
+    <UToast />
   </UApp>
 </template>
 

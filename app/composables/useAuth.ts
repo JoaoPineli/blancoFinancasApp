@@ -19,9 +19,13 @@ export interface AuthState {
 }
 
 export function useAuth() {
+  const runtimeConfig = useRuntimeConfig()
+  const apiBase = runtimeConfig.public.apiBase
+  const isProduction = typeof apiBase === 'string' && apiBase.startsWith('https')
+
   const token = useCookie<string | null>('auth_token', {
-    secure: true,
-    sameSite: 'strict',
+    secure: isProduction, // Only require secure in production (HTTPS)
+    sameSite: 'lax', // 'lax' allows cookie to persist on navigation
     maxAge: 60 * 60 * 24 * 7 // 7 days
   })
 
@@ -45,7 +49,7 @@ export function useAuth() {
    * Note: In production, this would call the backend.
    * Currently uses mock data for development.
    */
-  async function login(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+  async function login(email: string, password: string): Promise<{ success: boolean, error?: string }> {
     type LoginResponse = {
       access_token: string
       token_type: string
@@ -105,30 +109,32 @@ export function useAuth() {
   /**
    * Initialize auth state from cookie.
    * Called on app mount to restore session.
+   * Validates the token with the backend to restore user data.
    */
   async function initialize(): Promise<void> {
     if (token.value && !user.value) {
-      // Mock: restore user from token
-      // In production, this would validate the token with the backend
-      if (token.value === 'mock_client_token_123') {
-        user.value = {
-          id: '1',
-          name: 'João Silva',
-          email: 'cliente@blanco.com',
-          cpfCnpj: '123.456.789-00',
-          role: 'client'
-        }
-      } else if (token.value === 'mock_admin_token_456') {
-        user.value = {
-          id: '2',
-          name: 'Maria Admin',
-          email: 'admin@blanco.com',
-          cpfCnpj: '987.654.321-00',
-          role: 'admin'
-        }
-      } else {
-        // Invalid token - force logout
+      // Validate token with backend and fetch user profile
+      const { data, error: apiError } = await api.get<{
+        id: string
+        name: string
+        email: string
+        cpf: string
+        role: UserRole
+      }>('/v1/auth/me')
+
+      if (apiError || !data) {
+        // Token is invalid or expired - force logout
         logout()
+        return
+      }
+
+      // Restore user from backend response
+      user.value = {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        cpfCnpj: data.cpf,
+        role: data.role
       }
     }
   }

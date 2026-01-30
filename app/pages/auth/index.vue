@@ -183,7 +183,7 @@ async function handleLogin() {
         </div>
       </div>
     </div>
-    <UNotifications />
+    <UToast />
   </UApp>
 </template>
 
