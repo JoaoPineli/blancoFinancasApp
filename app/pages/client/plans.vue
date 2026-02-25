@@ -1,121 +1,202 @@
 <script setup lang="ts">
 /**
  * Client Plans page.
- * View plan details and contract.
+ * Displays user's plan subscriptions and allows creating new ones.
+ * Modal logic is delegated to ClientNewSubscriptionModal component.
  */
-
 definePageMeta({
   middleware: ['auth']
 })
 
-const { plans, clientDashboard } = useMockData()
-const { formatCurrency, formatPercent } = useCurrency()
+const { formatCurrency } = useCurrency()
 const toast = useToast()
+const {
+  subscriptions,
+  isLoading,
+  error,
+  fetchSubscriptions
+} = useSubscriptionsApi()
 
-const activePlanId = clientDashboard.activePlanId
+const showModal = ref(false)
 
-function handleViewContract() {
-  // Mock: In production, this would fetch PDF from backend
-  toast.add({
-    title: 'Abrindo contrato...',
-    description: 'O download do contrato em PDF será iniciado. (Mock)',
-    color: 'info'
-  })
+function openModal() {
+  showModal.value = true
 }
 
-function handleSelectPlan(planId: string) {
+function handleSubscriptionCreated(data: { planTitle: string }) {
   toast.add({
-    title: 'Plano selecionado',
-    description: 'Entre em contato com o suporte para ativar este plano. (Mock)',
-    color: 'info'
+    title: 'Assinatura criada!',
+    description: `Assinatura do plano "${data.planTitle}" criada com sucesso.`,
+    color: 'success'
   })
+  fetchSubscriptions()
+}
+
+onMounted(() => {
+  fetchSubscriptions()
+})
+
+function statusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    active: 'Ativa',
+    completed: 'Concluída',
+    cancelled: 'Cancelada'
+  }
+  return labels[status] || status
+}
+
+function statusColor(status: string): 'success' | 'neutral' | 'error' {
+  const colors: Record<string, 'success' | 'neutral' | 'error'> = {
+    active: 'success',
+    completed: 'neutral',
+    cancelled: 'error'
+  }
+  return colors[status] || 'neutral'
 }
 </script>
 
 <template>
   <div class="space-y-6">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-        Planos de Investimento
-      </h1>
-      <p class="text-gray-600 dark:text-gray-400">
-        Conheça nossos planos e escolha o melhor para você.
-      </p>
+    <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+          Minhas Poupanças
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Gerencie suas assinaturas de planos de poupança.
+        </p>
+      </div>
+      <div class="flex items-center justify-end gap-2">
+        <UButton
+          icon="i-lucide-plus"
+          @click="openModal"
+        >
+          Nova Poupança
+        </UButton>
+      </div>
     </div>
 
-    <!-- Plan Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div
+      v-if="isLoading"
+      class="flex items-center justify-center py-12"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-8 h-8 animate-spin text-primary-500"
+      />
+      <span class="ml-2 text-gray-500">Carregando assinaturas...</span>
+    </div>
+
+    <UCard
+      v-else-if="error"
+      class="border-red-200 dark:border-red-800"
+    >
+      <div class="flex items-center gap-3 text-red-600 dark:text-red-400">
+        <UIcon
+          name="i-lucide-alert-circle"
+          class="w-5 h-5"
+        />
+        <span>{{ error }}</span>
+        <UButton
+          variant="soft"
+          size="sm"
+          @click="fetchSubscriptions"
+        >
+          Tentar novamente
+        </UButton>
+      </div>
+    </UCard>
+
+    <UCard v-else-if="subscriptions.length === 0">
+      <div class="text-center py-8">
+        <UIcon
+          name="i-lucide-inbox"
+          class="w-12 h-12 mx-auto text-gray-400 mb-4"
+        />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          Nenhuma poupança encontrada
+        </h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-4">
+          Você ainda não possui nenhuma assinatura de plano. Clique abaixo para começar.
+        </p>
+        <UButton
+          icon="i-lucide-plus"
+          @click="openModal"
+        >
+          Criar Primeira Poupança
+        </UButton>
+      </div>
+    </UCard>
+
+    <div
+      v-else
+      class="grid grid-cols-1 gap-6"
+    >
       <UCard
-        v-for="plan in plans"
-        :key="plan.id"
-        :class="{ 'ring-2 ring-primary-500': plan.id === activePlanId }"
+        v-for="sub in subscriptions"
+        :key="sub.id"
       >
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ plan.name }}
+              {{ sub.planTitle }}
             </h3>
-            <UBadge v-if="plan.id === activePlanId" color="success">
-              Seu Plano
+            <UBadge :color="statusColor(sub.status)">
+              {{ statusLabel(sub.status) }}
             </UBadge>
           </div>
         </template>
 
-        <div class="space-y-4">
-          <p class="text-gray-600 dark:text-gray-400">
-            {{ plan.description }}
-          </p>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Investimento mínimo</p>
-              <p class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ formatCurrency(plan.minInvestmentCents) }}
-              </p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Rendimento mensal</p>
-              <p class="text-lg font-semibold text-green-600 dark:text-green-400">
-                {{ formatPercent(plan.yieldRateMonthly) }}
-              </p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Prazo</p>
-              <p class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ plan.termMonths }} meses
-              </p>
-            </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Objetivo
+            </p>
+            <p class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ formatCurrency(sub.targetAmountCents) }}
+            </p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Parcela mensal
+            </p>
+            <p class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ formatCurrency(sub.monthlyAmountCents) }}
+            </p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Nº de parcelas
+            </p>
+            <p class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ sub.depositCount }}x
+            </p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Custo total (taxas)
+            </p>
+            <p class="text-lg font-semibold text-orange-600 dark:text-orange-400">
+              {{ formatCurrency(sub.totalCostCents) }}
+            </p>
           </div>
         </div>
 
         <template #footer>
-          <div class="flex gap-2">
-            <UButton
-              v-if="plan.id === activePlanId"
-              icon="i-lucide-file-text"
-              variant="soft"
-              @click="handleViewContract"
-            >
-              Ver Contrato
-            </UButton>
-            <UButton
-              v-else
-              icon="i-lucide-check"
-              color="primary"
-              @click="handleSelectPlan(plan.id)"
-            >
-              Selecionar Plano
-            </UButton>
-          </div>
+          <p class="text-xs text-gray-400 dark:text-gray-500">
+            Criada em {{ new Date(sub.createdAt).toLocaleDateString('pt-BR') }}
+          </p>
         </template>
       </UCard>
     </div>
 
-    <!-- Contract Info -->
-    <UCard v-if="activePlanId">
+    <UCard v-if="true">
       <template #header>
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-file-text" class="w-5 h-5 text-primary-500" />
+          <UIcon
+            name="i-lucide-file-text"
+            class="w-5 h-5 text-primary-500"
+          />
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
             Seu Contrato
           </h2>
@@ -131,14 +212,13 @@ function handleSelectPlan(planId: string) {
         <UButton
           icon="i-lucide-download"
           variant="soft"
-          @click="handleViewContract"
+          @click="toast.add({ title: 'Download', description: 'Função de download de contrato ainda não implementada.', color: 'info' })"
         >
           Baixar Contrato (PDF)
         </UButton>
       </div>
     </UCard>
 
-    <!-- FAQ -->
     <UCard>
       <template #header>
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -153,8 +233,8 @@ function handleSelectPlan(planId: string) {
             content: 'O rendimento é calculado mensalmente sobre o valor investido e creditado automaticamente na sua conta. Todos os valores são fornecidos pelo sistema.'
           },
           {
-            label: 'Posso trocar de plano?',
-            content: 'Sim, você pode solicitar a troca de plano entrando em contato com o suporte. A alteração será aplicada no próximo ciclo de investimento.'
+            label: 'Posso ter mais de uma poupança?',
+            content: 'Sim! Você pode criar quantas assinaturas quiser, inclusive múltiplas do mesmo plano com parâmetros diferentes.'
           },
           {
             label: 'Qual o prazo para saque?',
@@ -163,5 +243,11 @@ function handleSelectPlan(planId: string) {
         ]"
       />
     </UCard>
+
+    <ClientNewSubscriptionModal
+      v-model:open="showModal"
+      @created="handleSubscriptionCreated"
+      @close="showModal = false"
+    />
   </div>
 </template>
