@@ -1,14 +1,22 @@
 <script setup lang="ts">
 /**
- * Client Plans page.
- * Displays user's plan subscriptions and allows creating new ones.
+ * Client Plans page — "Minhas Poupanças".
+ * Displays user's plan subscriptions with summary + details hierarchy.
+ *
+ * Expand/collapse: Option B — only one card expanded at a time.
+ * Rationale: Reduces cognitive load when reviewing multiple subscriptions
+ * sequentially. Natural accordion pattern. No localStorage overhead.
+ *
  * Modal logic is delegated to ClientNewSubscriptionModal component.
+ * All financial values come from the backend (no calculations here).
  */
+import type { SubscriptionAction } from '~/components/Client/SubscriptionCard.vue'
+import { SORT_OPTIONS, type SortOption, type ViewMode } from '~/composables/useSubscriptionHelpers'
+
 definePageMeta({
   middleware: ['auth']
 })
 
-const { formatCurrency } = useCurrency()
 const toast = useToast()
 const {
   subscriptions,
@@ -16,48 +24,63 @@ const {
   error,
   fetchSubscriptions
 } = useSubscriptionsApi()
+const { sortSubscriptions } = useSubscriptionHelpers()
 
+// --- View mode & Sort controls ---
+const viewMode = ref<ViewMode>('detailed')
+const sortBy = ref<SortOption>('next-due')
+
+const sortedSubscriptions = computed(() =>
+  sortSubscriptions(subscriptions.value, sortBy.value)
+)
+
+// --- Accordion: only one card expanded at a time ---
+const expandedId = ref<string | null>(null)
+function toggleExpand(id: string) {
+  expandedId.value = expandedId.value === id ? null : id
+}
+
+// --- Modal ---
 const showModal = ref(false)
 
 function openModal() {
   showModal.value = true
 }
 
-function handleSubscriptionCreated(data: { planTitle: string }) {
+function handleSubscriptionCreated(data: { planTitle: string, name: string }) {
   toast.add({
     title: 'Assinatura criada!',
-    description: `Assinatura do plano "${data.planTitle}" criada com sucesso.`,
+    description: `Assinatura "${data.name || data.planTitle}" criada com sucesso.`,
     color: 'success'
   })
   fetchSubscriptions()
 }
 
+// --- Subscription actions (stubs for unimplemented features) ---
+function handleAction(action: SubscriptionAction) {
+  const actionLabels: Record<string, string> = {
+    edit: 'Editar plano',
+    pause: 'Pausar plano',
+    resume: 'Retomar plano',
+    terminate: 'Encerrar plano',
+    history: 'Ver histórico'
+  }
+  toast.add({
+    title: actionLabels[action.type] || action.type,
+    description: `Ação "${actionLabels[action.type]}" ainda não implementada.`,
+    color: 'info'
+  })
+}
+
 onMounted(() => {
   fetchSubscriptions()
 })
-
-function statusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    active: 'Ativa',
-    completed: 'Concluída',
-    cancelled: 'Cancelada'
-  }
-  return labels[status] || status
-}
-
-function statusColor(status: string): 'success' | 'neutral' | 'error' {
-  const colors: Record<string, 'success' | 'neutral' | 'error'> = {
-    active: 'success',
-    completed: 'neutral',
-    cancelled: 'error'
-  }
-  return colors[status] || 'neutral'
-}
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+  <div class="space-y-6 max-w-5xl mx-auto">
+    <!-- Page header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
           Minhas Poupanças
@@ -66,27 +89,93 @@ function statusColor(status: string): 'success' | 'neutral' | 'error' {
           Gerencie suas assinaturas de planos de poupança.
         </p>
       </div>
-      <div class="flex items-center justify-end gap-2">
-        <UButton
-          icon="i-lucide-plus"
-          @click="openModal"
+      <UButton
+        icon="i-lucide-plus"
+        @click="openModal"
+      >
+        Nova Poupança
+      </UButton>
+    </div>
+
+    <!-- Toolbar: View mode toggle + Sort (only when there are subscriptions) -->
+    <div
+      v-if="subscriptions.length > 0 && !isLoading"
+      class="flex flex-wrap items-center justify-between gap-3"
+    >
+      <!-- View mode toggle -->
+      <div
+        class="inline-flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+        role="radiogroup"
+        aria-label="Modo de visualização"
+      >
+        <button
+          type="button"
+          class="px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          :class="viewMode === 'detailed'
+            ? 'bg-primary-500 text-white'
+            : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'"
+          role="radio"
+          :aria-checked="viewMode === 'detailed'"
+          @click="viewMode = 'detailed'"
         >
-          Nova Poupança
-        </UButton>
+          <UIcon
+            name="i-lucide-layout-grid"
+            class="w-4 h-4 mr-1 align-middle"
+            aria-hidden="true"
+          />
+          Detalhado
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          :class="viewMode === 'compact'
+            ? 'bg-primary-500 text-white'
+            : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'"
+          role="radio"
+          :aria-checked="viewMode === 'compact'"
+          @click="viewMode = 'compact'"
+        >
+          <UIcon
+            name="i-lucide-list"
+            class="w-4 h-4 mr-1 align-middle"
+            aria-hidden="true"
+          />
+          Compacto
+        </button>
+      </div>
+
+      <!-- Sort dropdown -->
+      <div class="flex items-center gap-2">
+        <label
+          for="sort-select"
+          class="text-sm text-gray-500 dark:text-gray-400"
+        >Ordenar:</label>
+        <USelectMenu
+          id="sort-select"
+          v-model="sortBy"
+          :items="SORT_OPTIONS"
+          value-key="value"
+          class="w-48"
+        />
       </div>
     </div>
 
+    <!-- Loading state -->
     <div
       v-if="isLoading"
       class="flex items-center justify-center py-12"
+      role="status"
+      aria-label="Carregando assinaturas"
     >
       <UIcon
         name="i-lucide-loader-2"
         class="w-8 h-8 animate-spin text-primary-500"
+        aria-hidden="true"
       />
       <span class="ml-2 text-gray-500">Carregando assinaturas...</span>
     </div>
 
+    <!-- Error state -->
     <UCard
       v-else-if="error"
       class="border-red-200 dark:border-red-800"
@@ -95,6 +184,7 @@ function statusColor(status: string): 'success' | 'neutral' | 'error' {
         <UIcon
           name="i-lucide-alert-circle"
           class="w-5 h-5"
+          aria-hidden="true"
         />
         <span>{{ error }}</span>
         <UButton
@@ -107,11 +197,13 @@ function statusColor(status: string): 'success' | 'neutral' | 'error' {
       </div>
     </UCard>
 
+    <!-- Empty state -->
     <UCard v-else-if="subscriptions.length === 0">
       <div class="text-center py-8">
         <UIcon
           name="i-lucide-inbox"
           class="w-12 h-12 mx-auto text-gray-400 mb-4"
+          aria-hidden="true"
         />
         <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
           Nenhuma poupança encontrada
@@ -128,74 +220,44 @@ function statusColor(status: string): 'success' | 'neutral' | 'error' {
       </div>
     </UCard>
 
+    <!-- Subscriptions: DETAILED view -->
     <div
-      v-else
+      v-else-if="viewMode === 'detailed'"
       class="grid grid-cols-1 gap-6"
     >
-      <UCard
-        v-for="sub in subscriptions"
+      <ClientSubscriptionCard
+        v-for="sub in sortedSubscriptions"
         :key="sub.id"
-      >
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ sub.planTitle }}
-            </h3>
-            <UBadge :color="statusColor(sub.status)">
-              {{ statusLabel(sub.status) }}
-            </UBadge>
-          </div>
-        </template>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Objetivo
-            </p>
-            <p class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ formatCurrency(sub.targetAmountCents) }}
-            </p>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Parcela mensal
-            </p>
-            <p class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ formatCurrency(sub.monthlyAmountCents) }}
-            </p>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Nº de parcelas
-            </p>
-            <p class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ sub.depositCount }}x
-            </p>
-          </div>
-          <div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Custo total (taxas)
-            </p>
-            <p class="text-lg font-semibold text-orange-600 dark:text-orange-400">
-              {{ formatCurrency(sub.totalCostCents) }}
-            </p>
-          </div>
-        </div>
-
-        <template #footer>
-          <p class="text-xs text-gray-400 dark:text-gray-500">
-            Criada em {{ new Date(sub.createdAt).toLocaleDateString('pt-BR') }}
-          </p>
-        </template>
-      </UCard>
+        :subscription="sub"
+        :expanded="expandedId === sub.id"
+        @toggle-expand="toggleExpand(sub.id)"
+        @action="handleAction"
+      />
     </div>
 
-    <UCard v-if="true">
+    <!-- Subscriptions: COMPACT view -->
+    <div
+      v-else
+      class="space-y-2"
+      role="list"
+      aria-label="Lista compacta de assinaturas"
+    >
+      <ClientSubscriptionCompactRow
+        v-for="sub in sortedSubscriptions"
+        :key="sub.id"
+        :subscription="sub"
+        @action="handleAction"
+      />
+    </div>
+
+    <!-- Contract section -->
+    <UCard v-if="subscriptions.length > 0">
       <template #header>
         <div class="flex items-center gap-2">
           <UIcon
             name="i-lucide-file-text"
             class="w-5 h-5 text-primary-500"
+            aria-hidden="true"
           />
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
             Seu Contrato
@@ -219,6 +281,7 @@ function statusColor(status: string): 'success' | 'neutral' | 'error' {
       </div>
     </UCard>
 
+    <!-- FAQ -->
     <UCard>
       <template #header>
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
@@ -244,6 +307,7 @@ function statusColor(status: string): 'success' | 'neutral' | 'error' {
       />
     </UCard>
 
+    <!-- New subscription modal -->
     <ClientNewSubscriptionModal
       v-model:open="showModal"
       @created="handleSubscriptionCreated"

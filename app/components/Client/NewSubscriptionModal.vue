@@ -10,10 +10,11 @@
  * - All cost data comes from the backend via composables
  * - Component emits user intent (events), parent handles post-creation logic
  */
+import type { FormError } from '@nuxt/ui'
 import type { RecommendationApiResponse, CostApiResponse } from '~/composables/useSubscriptionsApi'
 
 const emit = defineEmits<{
-  (e: 'created', data: { planTitle: string }): void
+  (e: 'created', data: { planTitle: string, name: string }): void
   (e: 'close'): void
 }>()
 
@@ -31,8 +32,36 @@ const modalLoading = ref(false)
 const modalError = ref<string | null>(null)
 
 // Phase 1: User input
-const targetAmountReais = ref<number | undefined>(undefined)
-const preference = ref<'FEWER_PAYMENTS' | 'LOWER_MONTHLY_AMOUNT'>('FEWER_PAYMENTS')
+const initialForm = {
+  subscriptionName: '',
+  targetAmountReais: undefined as number | undefined,
+  preference: 'FEWER_PAYMENTS' as 'FEWER_PAYMENTS' | 'LOWER_MONTHLY_AMOUNT',
+  depositDayOfMonth: 1
+}
+
+const form = reactive({ ...initialForm })
+
+type FormSchema = typeof form
+
+function validateForm(state: Partial<FormSchema>): FormError[] {
+  const errors: FormError[] = []
+  if (!state.subscriptionName || !state.subscriptionName.trim()) {
+    errors.push({ name: 'subscriptionName', message: 'Nome da poupança é obrigatório' })
+  }
+  if (!state.targetAmountReais || state.targetAmountReais <= 0) {
+    errors.push({ name: 'targetAmountReais', message: 'Informe um valor válido' })
+  }
+  return errors
+}
+
+const depositDayOptions = [
+  { label: 'Dia 1', value: 1 },
+  { label: 'Dia 5', value: 5 },
+  { label: 'Dia 10', value: 10 },
+  { label: 'Dia 15', value: 15 },
+  { label: 'Dia 20', value: 20 },
+  { label: 'Dia 25', value: 25 }
+]
 
 // Phase 2: Recommendation + adjustment
 const recommendation = ref<RecommendationApiResponse | null>(null)
@@ -52,8 +81,7 @@ watch(open, (isOpen) => {
 function resetForm() {
   modalPhase.value = 'input'
   modalError.value = null
-  targetAmountReais.value = undefined
-  preference.value = 'FEWER_PAYMENTS'
+  Object.assign(form, initialForm)
   recommendation.value = null
   costBreakdown.value = null
   limitWarning.value = null
@@ -65,16 +93,11 @@ function handleClose() {
 }
 
 async function handleRecommend() {
-  if (!targetAmountReais.value || targetAmountReais.value <= 0) {
-    modalError.value = 'Informe um valor válido.'
-    return
-  }
-
   modalLoading.value = true
   modalError.value = null
 
-  const targetAmountCents = Math.round(targetAmountReais.value * 100)
-  const result = await getRecommendation(targetAmountCents, preference.value)
+  const targetAmountCents = Math.round(form.targetAmountReais! * 100)
+  const result = await getRecommendation(targetAmountCents, form.preference)
 
   if (result) {
     recommendation.value = result
@@ -105,9 +128,9 @@ async function handleRecommend() {
  * Then call backend for the actual cost.
  */
 async function handleDepositCountChange(newCount: number) {
-  if (!recommendation.value || !targetAmountReais.value) return
+  if (!recommendation.value || !form.targetAmountReais) return
 
-  const targetCents = Math.round(targetAmountReais.value * 100)
+  const targetCents = Math.round(form.targetAmountReais * 100)
   const minDuration = recommendation.value.min_duration_months
   const maxDuration = recommendation.value.max_duration_months
 
@@ -145,9 +168,9 @@ async function handleDepositCountChange(newCount: number) {
  * Then call backend for the actual cost.
  */
 async function handleMonthlyAmountChange(newMonthlyReais: number) {
-  if (!recommendation.value || !targetAmountReais.value) return
+  if (!recommendation.value || !form.targetAmountReais) return
 
-  const targetCents = Math.round(targetAmountReais.value * 100)
+  const targetCents = Math.round(form.targetAmountReais * 100)
   const newMonthlyCents = Math.round(newMonthlyReais * 100)
 
   if (newMonthlyCents <= 0) {
@@ -186,20 +209,22 @@ async function handleMonthlyAmountChange(newMonthlyReais: number) {
 }
 
 async function handleConfirmSubscription() {
-  if (!recommendation.value || !targetAmountReais.value) return
+  if (!recommendation.value || !form.targetAmountReais) return
 
   isCreating.value = true
-  const targetCents = Math.round(targetAmountReais.value * 100)
+  const targetCents = Math.round(form.targetAmountReais * 100)
 
   const result = await createSubscription(
     recommendation.value.plan_id,
     targetCents,
     adjustedDepositCount.value,
-    adjustedMonthlyAmountCents.value
+    adjustedMonthlyAmountCents.value,
+    form.subscriptionName.trim(),
+    form.depositDayOfMonth
   )
 
   if (result) {
-    emit('created', { planTitle: result.planTitle })
+    emit('created', { planTitle: result.planTitle, name: result.name })
     open.value = false
   }
 
@@ -225,55 +250,89 @@ async function handleConfirmSubscription() {
           </div>
         </template>
 
-        <div
+        <UForm
           v-if="modalPhase === 'input'"
+          :state="form"
+          :validate="validateForm"
           class="space-y-4"
+          @submit="handleRecommend"
         >
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Quanto deseja poupar? (R$)
-            </label>
+          <UFormField
+            name="subscriptionName"
+            label="Nome da poupança"
+            required
+          >
             <UInput
-              v-model="targetAmountReais"
+              v-model="form.subscriptionName"
+              type="text"
+              placeholder="Ex: Casa própria, Reserva, Viagem…"
+              maxlength="120"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField
+            name="targetAmountReais"
+            label="Quanto deseja poupar? (R$)"
+            required
+          >
+            <UInput
+              v-model="form.targetAmountReais"
               type="number"
               placeholder="Ex: 10000"
               :min="1"
               step="0.01"
+              class="w-full"
             />
-          </div>
+          </UFormField>
 
-          <URadioGroup
-            v-model="preference"
-            legend="Sua preferência"
-            :items="[
-              {
-                label: 'Menos parcelas',
-                description: 'Prioriza planos com menor número de parcelas, quitando mais rápido.',
-                value: 'FEWER_PAYMENTS'
-              },
-              {
-                label: 'Valor mensal menor',
-                description: 'Prioriza planos com parcelas mais acessíveis no dia a dia.',
-                value: 'LOWER_MONTHLY_AMOUNT'
-              }
-            ]"
-          />
+          <UFormField
+            name="preference"
+            label="Sua preferência"
+          >
+            <URadioGroup
+              v-model="form.preference"
+              :items="[
+                {
+                  label: 'Menos parcelas',
+                  description: 'Prioriza planos com menor número de parcelas, quitando mais rápido.',
+                  value: 'FEWER_PAYMENTS'
+                },
+                {
+                  label: 'Valor mensal menor',
+                  description: 'Prioriza planos com parcelas mais acessíveis no dia a dia.',
+                  value: 'LOWER_MONTHLY_AMOUNT'
+                }
+              ]"
+            />
+          </UFormField>
 
-          <div
+          <UFormField
+            name="depositDayOfMonth"
+            label="Dia do depósito mensal"
+          >
+            <USelectMenu
+              v-model="form.depositDayOfMonth"
+              :items="depositDayOptions"
+              value-key="value"
+            />
+          </UFormField>
+
+          <p
             v-if="modalError"
-            class="text-sm text-red-600 dark:text-red-400"
+            class="text-sm text-red-500"
           >
             {{ modalError }}
-          </div>
+          </p>
 
           <UButton
+            type="submit"
             block
             :loading="modalLoading"
-            @click="handleRecommend"
           >
             Buscar recomendação
           </UButton>
-        </div>
+        </UForm>
 
         <div
           v-if="modalPhase === 'recommendation' && recommendation"
@@ -289,10 +348,10 @@ async function handleConfirmSubscription() {
           </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Nº de parcelas
-              </label>
+            <UFormField
+              label="Nº de parcelas"
+              :description="`Min: ${recommendation.min_duration_months}${recommendation.max_duration_months ? ` / Max: ${recommendation.max_duration_months}` : ''}`"
+            >
               <UInput
                 :model-value="adjustedDepositCount"
                 type="number"
@@ -300,15 +359,8 @@ async function handleConfirmSubscription() {
                 :max="recommendation.max_duration_months ?? undefined"
                 @update:model-value="handleDepositCountChange(Number($event))"
               />
-              <p class="text-xs text-gray-400 mt-1">
-                Min: {{ recommendation.min_duration_months }}
-                {{ recommendation.max_duration_months ? `/ Max: ${recommendation.max_duration_months}` : '' }}
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Valor mensal (R$)
-              </label>
+            </UFormField>
+            <UFormField label="Valor mensal (R$)">
               <UInput
                 :model-value="(adjustedMonthlyAmountCents / 100).toFixed(2)"
                 type="number"
@@ -316,7 +368,7 @@ async function handleConfirmSubscription() {
                 step="0.01"
                 @update:model-value="handleMonthlyAmountChange(Number($event))"
               />
-            </div>
+            </UFormField>
           </div>
 
           <div

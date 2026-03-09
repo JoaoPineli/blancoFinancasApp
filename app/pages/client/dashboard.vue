@@ -13,6 +13,24 @@ definePageMeta({
 
 const { clientDashboard, installments } = useMockData()
 const { formatCurrency, formatDate, formatPercent } = useCurrency()
+const { getDashboardDueStatus } = useSubscriptionsApi()
+
+// Due/overdue status for the deposit banner
+const overduePlans = ref<Array<{ subscriptionId: string; planTitle: string; name: string; nextDueDate: string }>>([])
+const dueTodayPlans = ref<Array<{ subscriptionId: string; planTitle: string; name: string; nextDueDate: string }>>([])
+
+const bannerSeverity = computed<'error' | 'warn' | null>(() => {
+  if (overduePlans.value.length > 0) return 'error'
+  if (dueTodayPlans.value.length > 0) return 'warn'
+  return null
+})
+
+const bannerPlanNames = computed(() => {
+  if (overduePlans.value.length > 0) {
+    return overduePlans.value.map(p => p.name || p.planTitle).join(', ')
+  }
+  return dueTodayPlans.value.map(p => p.name || p.planTitle).join(', ')
+})
 
 // Mock yield history data (from backend)
 const yieldHistory = [
@@ -28,6 +46,14 @@ const activePlan = computed(() => {
   const { getPlanById } = useMockData()
   return getPlanById(clientDashboard.activePlanId)
 })
+
+onMounted(async () => {
+  const status = await getDashboardDueStatus()
+  if (status) {
+    overduePlans.value = status.overduePlans
+    dueTodayPlans.value = status.dueTodayPlans
+  }
+})
 </script>
 
 <template>
@@ -39,6 +65,45 @@ const activePlan = computed(() => {
       <p class="text-gray-600 dark:text-gray-400">
         Acompanhe seus investimentos e rendimentos.
       </p>
+    </div>
+
+    <!-- Deposit Due / Overdue Banner (non-dismissible) -->
+    <div
+      v-if="bannerSeverity === 'error'"
+      class="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950 p-4 flex items-start gap-3"
+      role="alert"
+    >
+      <UIcon
+        name="i-lucide-alert-circle"
+        class="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0"
+      />
+      <div>
+        <p class="text-sm font-semibold text-red-800 dark:text-red-200">
+          Depósitos em atraso
+        </p>
+        <p class="text-sm text-red-700 dark:text-red-300">
+          Pagamentos pendentes para: {{ bannerPlanNames }}
+        </p>
+      </div>
+    </div>
+
+    <div
+      v-else-if="bannerSeverity === 'warn'"
+      class="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 p-4 flex items-start gap-3"
+      role="alert"
+    >
+      <UIcon
+        name="i-lucide-alert-triangle"
+        class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"
+      />
+      <div>
+        <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+          Depósitos vencem hoje
+        </p>
+        <p class="text-sm text-amber-700 dark:text-amber-300">
+          Pagamentos pendentes para: {{ bannerPlanNames }}
+        </p>
+      </div>
     </div>
 
     <!-- Summary Cards -->

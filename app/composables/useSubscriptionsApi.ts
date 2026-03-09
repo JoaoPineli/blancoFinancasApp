@@ -15,6 +15,7 @@ export interface SubscriptionApiResponse {
   user_id: string
   plan_id: string
   plan_title: string
+  name: string
   target_amount_cents: number
   deposit_count: number
   monthly_amount_cents: number
@@ -22,8 +23,13 @@ export interface SubscriptionApiResponse {
   insurance_percent: number
   guarantee_fund_percent: number
   total_cost_cents: number
+  deposit_day_of_month: number
+  next_due_date: string
+  has_overdue_deposit: boolean
   status: string
   created_at: string
+  /** Optional: accumulated amount deposited so far (cents). Not yet returned by all endpoints. */
+  accumulated_cents?: number | null
 }
 
 export interface SubscriptionListApiResponse {
@@ -66,6 +72,7 @@ export interface Subscription {
   userId: string
   planId: string
   planTitle: string
+  name: string
   targetAmountCents: number
   depositCount: number
   monthlyAmountCents: number
@@ -73,8 +80,13 @@ export interface Subscription {
   insurancePercent: number
   guaranteeFundPercent: number
   totalCostCents: number
+  depositDayOfMonth: number
+  nextDueDate: string
+  hasOverdueDeposit: boolean
   status: string
   createdAt: string
+  /** Accumulated amount deposited so far (cents). null/undefined = data not available yet. */
+  accumulatedCents?: number | null
 }
 
 function toSubscription(response: SubscriptionApiResponse): Subscription {
@@ -83,6 +95,7 @@ function toSubscription(response: SubscriptionApiResponse): Subscription {
     userId: response.user_id,
     planId: response.plan_id,
     planTitle: response.plan_title,
+    name: response.name,
     targetAmountCents: response.target_amount_cents,
     depositCount: response.deposit_count,
     monthlyAmountCents: response.monthly_amount_cents,
@@ -90,8 +103,12 @@ function toSubscription(response: SubscriptionApiResponse): Subscription {
     insurancePercent: Number(response.insurance_percent),
     guaranteeFundPercent: Number(response.guarantee_fund_percent),
     totalCostCents: response.total_cost_cents,
+    depositDayOfMonth: response.deposit_day_of_month,
+    nextDueDate: response.next_due_date,
+    hasOverdueDeposit: response.has_overdue_deposit,
     status: response.status,
-    createdAt: response.created_at
+    createdAt: response.created_at,
+    accumulatedCents: response.accumulated_cents ?? null
   }
 }
 
@@ -191,7 +208,9 @@ export function useSubscriptionsApi() {
     planId: string,
     targetAmountCents: number,
     depositCount: number,
-    monthlyAmountCents: number
+    monthlyAmountCents: number,
+    name: string = '',
+    depositDayOfMonth: number = 1
   ): Promise<Subscription | null> {
     const response = await api.post<SubscriptionApiResponse>(
       '/v1/subscriptions',
@@ -199,7 +218,9 @@ export function useSubscriptionsApi() {
         plan_id: planId,
         target_amount_cents: targetAmountCents,
         deposit_count: depositCount,
-        monthly_amount_cents: monthlyAmountCents
+        monthly_amount_cents: monthlyAmountCents,
+        name,
+        deposit_day_of_month: depositDayOfMonth
       }
     )
 
@@ -222,6 +243,87 @@ export function useSubscriptionsApi() {
     return null
   }
 
+  /**
+   * Updates the deposit day-of-month for a subscription.
+   */
+  async function updateDepositDay(
+    subscriptionId: string,
+    depositDayOfMonth: number
+  ): Promise<Subscription | null> {
+    const response = await api.patch<SubscriptionApiResponse>(
+      `/v1/subscriptions/${subscriptionId}/deposit-day`,
+      { deposit_day_of_month: depositDayOfMonth }
+    )
+
+    if (response.error) {
+      toast.add({
+        title: 'Erro ao atualizar dia de depósito',
+        description: response.error.message,
+        color: 'error'
+      })
+      return null
+    }
+
+    if (response.data) {
+      const updated = toSubscription(response.data)
+      // Update local state
+      const idx = subscriptions.value.findIndex(s => s.id === updated.id)
+      if (idx >= 0) subscriptions.value[idx] = updated
+      return updated
+    }
+
+    return null
+  }
+
+  /**
+   * Dashboard due/overdue status types and fetcher.
+   */
+  interface DuePlanInfo {
+    subscriptionId: string
+    planTitle: string
+    name: string
+    nextDueDate: string
+  }
+
+  interface DashboardDueStatusApiResponse {
+    overdue_plans: Array<{ subscription_id: string, plan_title: string, name: string, next_due_date: string }>
+    due_today_plans: Array<{ subscription_id: string, plan_title: string, name: string, next_due_date: string }>
+  }
+
+  interface DashboardDueStatus {
+    overduePlans: DuePlanInfo[]
+    dueTodayPlans: DuePlanInfo[]
+  }
+
+  async function getDashboardDueStatus(): Promise<DashboardDueStatus | null> {
+    const response = await api.get<DashboardDueStatusApiResponse>(
+      '/v1/subscriptions/dashboard/due-status'
+    )
+
+    if (response.error) {
+      return null
+    }
+
+    if (response.data) {
+      return {
+        overduePlans: response.data.overdue_plans.map(p => ({
+          subscriptionId: p.subscription_id,
+          planTitle: p.plan_title,
+          name: p.name,
+          nextDueDate: p.next_due_date
+        })),
+        dueTodayPlans: response.data.due_today_plans.map(p => ({
+          subscriptionId: p.subscription_id,
+          planTitle: p.plan_title,
+          name: p.name,
+          nextDueDate: p.next_due_date
+        }))
+      }
+    }
+
+    return null
+  }
+
   return {
     subscriptions,
     isLoading,
@@ -229,6 +331,8 @@ export function useSubscriptionsApi() {
     fetchSubscriptions,
     getRecommendation,
     calculateCost,
-    createSubscription
+    createSubscription,
+    updateDepositDay,
+    getDashboardDueStatus
   }
 }

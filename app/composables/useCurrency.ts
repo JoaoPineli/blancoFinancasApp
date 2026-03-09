@@ -56,10 +56,19 @@ export function useCurrency() {
     return d.toLocaleString('pt-BR')
   }
 
+  /**
+   * Formats a day-of-month for display.
+   * Uses zero-padded format: "Todo dia 01", "Todo dia 10".
+   */
+  function formatDayOfMonth(day: number): string {
+    return `Todo dia ${String(day).padStart(2, '0')}`
+  }
+
   return {
     formatCurrency,
     formatPercent,
     formatDate,
-    formatDateTime
+    formatDateTime,
+    formatDayOfMonth
   }
 }
