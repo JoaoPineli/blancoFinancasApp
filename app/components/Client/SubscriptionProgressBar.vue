@@ -56,10 +56,10 @@ const excessCents = computed(() => {
 </script>
 
 <template>
-  <div :class="compact ? 'w-24' : 'w-full'">
+  <div :class="compact ? 'w-24' : 'w-60'">
     <!-- Progress bar (shown whether data is available or not) -->
     <div
-      class="w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
+      class="bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden"
       :class="compact ? 'h-1.5' : 'h-2.5'"
       role="progressbar"
       :aria-valuenow="isAvailable ? Math.round(percentage) : undefined"

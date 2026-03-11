@@ -27,7 +27,7 @@ const {
 const { sortSubscriptions } = useSubscriptionHelpers()
 
 // --- View mode & Sort controls ---
-const viewMode = ref<ViewMode>('detailed')
+const viewMode = ref<ViewMode>('compact')
 const sortBy = ref<SortOption>('next-due')
 
 const sortedSubscriptions = computed(() =>
@@ -56,14 +56,39 @@ function handleSubscriptionCreated(data: { planTitle: string, name: string }) {
   fetchSubscriptions()
 }
 
-// --- Subscription actions (stubs for unimplemented features) ---
+// --- Subscription actions ---
 function handleAction(action: SubscriptionAction) {
+  // Navigate to finance page with context
+  if (action.type === 'pay') {
+    navigateTo({
+      path: '/client/finance',
+      query: { subscription: action.subscriptionId }
+    })
+    return
+  }
+
+  if (action.type === 'withdraw') {
+    navigateTo({
+      path: '/client/finance',
+      query: { subscription: action.subscriptionId, tab: 'withdraw' }
+    })
+    return
+  }
+
+  if (action.type === 'history') {
+    navigateTo({
+      path: '/client/finance',
+      query: { tab: 'history' }
+    })
+    return
+  }
+
+  // Stubs for unimplemented features
   const actionLabels: Record<string, string> = {
     edit: 'Editar plano',
     pause: 'Pausar plano',
     resume: 'Retomar plano',
-    terminate: 'Encerrar plano',
-    history: 'Ver histórico'
+    terminate: 'Encerrar plano'
   }
   toast.add({
     title: actionLabels[action.type] || action.type,
@@ -111,23 +136,6 @@ onMounted(() => {
         <button
           type="button"
           class="px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-          :class="viewMode === 'detailed'
-            ? 'bg-primary-500 text-white'
-            : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'"
-          role="radio"
-          :aria-checked="viewMode === 'detailed'"
-          @click="viewMode = 'detailed'"
-        >
-          <UIcon
-            name="i-lucide-layout-grid"
-            class="w-4 h-4 mr-1 align-middle"
-            aria-hidden="true"
-          />
-          Detalhado
-        </button>
-        <button
-          type="button"
-          class="px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           :class="viewMode === 'compact'
             ? 'bg-primary-500 text-white'
             : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'"
@@ -141,6 +149,23 @@ onMounted(() => {
             aria-hidden="true"
           />
           Compacto
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+          :class="viewMode === 'detailed'
+            ? 'bg-primary-500 text-white'
+            : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'"
+          role="radio"
+          :aria-checked="viewMode === 'detailed'"
+          @click="viewMode = 'detailed'"
+        >
+          <UIcon
+            name="i-lucide-layout-grid"
+            class="w-4 h-4 mr-1 align-middle"
+            aria-hidden="true"
+          />
+          Detalhado
         </button>
       </div>
 

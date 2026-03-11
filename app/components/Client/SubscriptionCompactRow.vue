@@ -84,10 +84,10 @@ const menuItems = computed(() => [
       />
     </div>
 
-    <!-- Monthly amount -->
-    <div class="shrink-0 text-sm text-gray-700 dark:text-gray-300 order-3 md:order-3">
-      <span class="md:hidden text-xs text-gray-500 mr-1">Parcela:</span>
-      {{ formatCurrency(sub.monthlyAmountCents) }}
+    <!-- Accumulated value -->
+    <div class="shrink-0 w-28 text-sm text-right text-gray-700 dark:text-gray-300 order-3 md:order-3">
+      <span class="md:hidden text-xs text-gray-500 mr-1">Acumulado:</span>
+      {{ sub.accumulatedCents != null ? formatCurrency(sub.accumulatedCents) : '—' }}
     </div>
 
     <!-- Next due -->
