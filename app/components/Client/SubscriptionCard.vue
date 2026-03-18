@@ -3,9 +3,13 @@
  * SubscriptionCard — detailed card view for a single subscription.
  *
  * Layout:
- *   Header  → Name + overdue badge + status badge + kebab menu
- *   Summary → 3-col grid: Progress | Next due | Monthly amount  (always visible)
- *   Details → 2-col grid: Objective, installments, deposit day, fees, created at (collapsible)
+ *   Header      → Name + overdue badge + status badge + kebab menu
+ *   Summary     → 3-col grid: Progresso | Próximo vencimento | Valor acumulado (always visible)
+ *   Details     → 2-col grid, collapsible:
+ *                   Financeiro:  Objetivo | Parcela mensal
+ *                   Parcelas:    Parcela atual | Total de parcelas
+ *                   Calendário:  Dia do depósito | Data de criação
+ *                   Retornos:    Taxas estimadas | Rendimento poupança
  *
  * Per guardrails:
  * - No financial calculations. Fee ratio is display-only.
@@ -40,6 +44,9 @@ const {
 } = useSubscriptionHelpers()
 
 const sub = computed(() => props.subscription)
+const totalAccumulatedCents = computed(() =>
+  (sub.value.accumulatedCents ?? 0) + sub.value.yieldCents
+)
 
 const feePercent = computed(() =>
   feePercentOfTarget(sub.value.totalCostCents, sub.value.targetAmountCents)
@@ -137,13 +144,14 @@ const feeTooltipText = computed(() => {
       </div>
     </template>
 
+    <!-- SUMMARY (always visible): Progresso | Próximo vencimento | Valor acumulado -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div>
         <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
           Progresso
         </p>
         <ClientSubscriptionProgressBar
-          :accumulated-cents="sub.accumulatedCents"
+          :accumulated-cents="totalAccumulatedCents"
           :target-cents="sub.targetAmountCents"
         />
       </div>
@@ -168,7 +176,7 @@ const feeTooltipText = computed(() => {
           Valor acumulado
         </p>
         <p class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ sub.accumulatedCents != null ? formatCurrency(sub.accumulatedCents) : '—' }}
+          {{ sub.accumulatedCents != null ? formatCurrency(totalAccumulatedCents) : '—' }}
         </p>
         <p class="text-xs text-gray-500 dark:text-gray-400">
           de {{ formatCurrency(sub.targetAmountCents) }}
@@ -176,19 +184,22 @@ const feeTooltipText = computed(() => {
       </div>
     </div>
 
+    <!-- DETAILS (collapsible) -->
     <Transition
       enter-active-class="transition-all duration-200 ease-out"
       enter-from-class="opacity-0 max-h-0"
-      enter-to-class="opacity-100 max-h-96"
+      enter-to-class="opacity-100 max-h-[32rem]"
       leave-active-class="transition-all duration-150 ease-in"
-      leave-from-class="opacity-100 max-h-96"
+      leave-from-class="opacity-100 max-h-[32rem]"
       leave-to-class="opacity-0 max-h-0"
     >
       <div
         v-if="expanded"
+        :id="`details-${sub.id}`"
         class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 overflow-hidden"
       >
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+          <!-- Grupo: Financeiro -->
           <div>
             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
               Objetivo
@@ -198,7 +209,6 @@ const feeTooltipText = computed(() => {
             </p>
           </div>
 
-          <!-- Parcela mensal -->
           <div>
             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
               Parcela mensal
@@ -208,60 +218,85 @@ const feeTooltipText = computed(() => {
             </p>
           </div>
 
-          <!-- Nº de parcelas -->
-          <p class="text-base font-semibold text-gray-900 dark:text-white">
-            {{ sub.depositCount }} {{ sub.depositCount === 1 ? 'parcela' : 'parcelas' }}
-          </p>
-        </div>
-
-        <div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
-            Dia do depósito mensal
-          </p>
-          <p class="text-base font-semibold text-gray-900 dark:text-white">
-            {{ formatDayOfMonth(sub.depositDayOfMonth) }}
-          </p>
-        </div>
-
-        <div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-1">
-            Taxas estimadas
-            <UTooltip :text="feeTooltipText">
-              <UIcon
-                name="i-lucide-info"
-                class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 cursor-help"
-                aria-label="Informações sobre taxas"
-              />
-            </UTooltip>
-          </p>
-          <div class="flex items-baseline gap-2">
-            <p
-              class="text-base font-semibold"
-              :class="showFeeWarning
-                ? 'text-amber-600 dark:text-amber-400'
-                : 'text-gray-900 dark:text-white'"
-            >
-              {{ formatCurrency(sub.totalCostCents) }}
+          <!-- Grupo: Parcelas -->
+          <div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Parcela atual
             </p>
-            <span
-              v-if="feePercent !== null"
-              class="text-xs"
-              :class="showFeeWarning
-                ? 'text-amber-600 dark:text-amber-400'
-                : 'text-gray-500 dark:text-gray-400'"
-            >
-              ({{ formatPercent(feePercent) }} do objetivo)
-            </span>
+            <p class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ sub.depositsPaid + 1 }}ª de {{ sub.depositCount }}
+            </p>
           </div>
-        </div>
 
-        <div>
-          <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
-            Data de criação
-          </p>
-          <p class="text-base font-semibold text-gray-900 dark:text-white">
-            {{ formatDate(sub.createdAt) }}
-          </p>
+          <div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Total de parcelas
+            </p>
+            <p class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ sub.depositCount }} {{ sub.depositCount === 1 ? 'parcela' : 'parcelas' }}
+            </p>
+          </div>
+
+          <!-- Grupo: Calendário -->
+          <div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Dia do depósito
+            </p>
+            <p class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ formatDayOfMonth(sub.depositDayOfMonth) }}
+            </p>
+          </div>
+
+          <div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Data de criação
+            </p>
+            <p class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ formatDate(sub.createdAt) }}
+            </p>
+          </div>
+
+          <!-- Grupo: Custos e retornos -->
+          <div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300 flex items-center gap-1">
+              Taxas estimadas
+              <UTooltip :text="feeTooltipText">
+                <UIcon
+                  name="i-lucide-info"
+                  class="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 cursor-help"
+                  aria-label="Informações sobre taxas"
+                />
+              </UTooltip>
+            </p>
+            <div class="flex items-baseline gap-2">
+              <p
+                class="text-base font-semibold"
+                :class="showFeeWarning
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-gray-900 dark:text-white'"
+              >
+                {{ formatCurrency(sub.totalCostCents) }}
+              </p>
+              <span
+                v-if="feePercent !== null"
+                class="text-xs"
+                :class="showFeeWarning
+                  ? 'text-amber-600 dark:text-amber-400'
+                  : 'text-gray-500 dark:text-gray-400'"
+              >
+                ({{ formatPercent(feePercent) }} do objetivo)
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+              Rendimento poupança
+            </p>
+            <p class="text-base font-semibold text-green-600 dark:text-green-400">
+              {{ sub.yieldCents > 0 ? "+" + formatCurrency(sub.yieldCents) : '—' }}
+            </p>
+          </div>
         </div>
       </div>
     </Transition>

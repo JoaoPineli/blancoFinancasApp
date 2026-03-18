@@ -24,6 +24,9 @@ const { statusLabel, statusColor, statusAriaLabel, daysUntilLabel } = useSubscri
 
 const sub = computed(() => props.subscription)
 const dueDateLabel = computed(() => daysUntilLabel(sub.value.nextDueDate))
+const totalAccumulatedCents = computed(() =>
+  (sub.value.accumulatedCents ?? 0) + sub.value.yieldCents
+)
 
 const menuItems = computed(() => [
   [
@@ -78,7 +81,7 @@ const menuItems = computed(() => [
     <!-- Progress mini bar -->
     <div class="shrink-0 order-2 md:order-2">
       <ClientSubscriptionProgressBar
-        :accumulated-cents="sub.accumulatedCents"
+        :accumulated-cents="totalAccumulatedCents"
         :target-cents="sub.targetAmountCents"
         compact
       />
@@ -87,7 +90,7 @@ const menuItems = computed(() => [
     <!-- Accumulated value -->
     <div class="shrink-0 w-28 text-sm text-right text-gray-700 dark:text-gray-300 order-3 md:order-3">
       <span class="md:hidden text-xs text-gray-500 mr-1">Acumulado:</span>
-      {{ sub.accumulatedCents != null ? formatCurrency(sub.accumulatedCents) : '—' }}
+      {{ sub.accumulatedCents != null ? formatCurrency(totalAccumulatedCents) : '—' }}
     </div>
 
     <!-- Next due -->

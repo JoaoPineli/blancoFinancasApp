@@ -30,6 +30,10 @@ export interface SubscriptionApiResponse {
   created_at: string
   /** Optional: accumulated amount deposited so far (cents). Not yet returned by all endpoints. */
   accumulated_cents?: number | null
+  /** Number of installments paid so far. */
+  deposits_paid?: number | null
+  /** Total poupança yield credited so far (cents). */
+  yield_cents?: number | null
 }
 
 export interface SubscriptionListApiResponse {
@@ -87,6 +91,10 @@ export interface Subscription {
   createdAt: string
   /** Accumulated amount deposited so far (cents). null/undefined = data not available yet. */
   accumulatedCents?: number | null
+  /** Number of installments paid so far. */
+  depositsPaid: number
+  /** Total poupança yield credited so far (cents). */
+  yieldCents: number
 }
 
 function toSubscription(response: SubscriptionApiResponse): Subscription {
@@ -108,7 +116,9 @@ function toSubscription(response: SubscriptionApiResponse): Subscription {
     hasOverdueDeposit: response.has_overdue_deposit,
     status: response.status,
     createdAt: response.created_at,
-    accumulatedCents: response.accumulated_cents ?? null
+    accumulatedCents: response.accumulated_cents ?? null,
+    depositsPaid: response.deposits_paid ?? 0,
+    yieldCents: response.yield_cents ?? 0
   }
 }
 
