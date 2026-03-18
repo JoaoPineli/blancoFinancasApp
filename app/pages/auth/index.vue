@@ -44,8 +44,10 @@ async function handleLogin() {
         color: 'success'
       })
 
-      // Redirect based on role
-      if (auth.isAdmin.value) {
+      // Redirect based on status and role
+      if (auth.isRegistered.value) {
+        await navigateTo('/auth/confirm')
+      } else if (auth.isAdmin.value) {
         await navigateTo('/admin/clients')
       } else {
         await navigateTo('/client/dashboard')
@@ -76,104 +78,48 @@ async function handleLogin() {
             <p class="mt-2 text-gray-600 dark:text-gray-400">
               Entre com suas credenciais para acessar sua conta.
             </p>
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-500">
-              Se você ainda não possui uma conta, entre em contato com o administrador.
-            </p>
           </div>
 
           <UCard>
-            <form
-              class="space-y-4"
-              @submit.prevent="handleLogin"
-            >
-              <UFormField
-                label="Email"
-                :error="emailError"
-                required
-              >
-                <UInput
-                  v-model="form.email"
-                  type="email"
-                  placeholder="seu@email.com"
-                  icon="i-lucide-mail"
-                  autocomplete="email"
-                  class="w-full"
-                />
+            <form class="space-y-4" @submit.prevent="handleLogin">
+              <UFormField label="Email" :error="emailError" required>
+                <UInput v-model="form.email" type="email" placeholder="seu@email.com" icon="i-lucide-mail"
+                  autocomplete="email" class="w-full" />
               </UFormField>
 
-              <UFormField
-                label="Senha"
-                required
-              >
-                <UInput
-                  v-model="form.password"
-                  :type="showPassword ? 'text' : 'password'"
-                  placeholder="••••••••"
-                  icon="i-lucide-lock"
-                  autocomplete="current-password"
-                  class="w-full"
-                >
+              <UFormField label="Senha" required>
+                <UInput v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••"
+                  icon="i-lucide-lock" autocomplete="current-password" class="w-full">
                   <template #trailing>
-                    <UButton
-                      :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
-                      color="neutral"
-                      variant="ghost"
-                      size="xs"
-                      @click="showPassword = !showPassword"
-                    />
+                    <UButton :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" color="neutral" variant="ghost"
+                      size="xs" @click="showPassword = !showPassword" />
                   </template>
                 </UInput>
               </UFormField>
 
               <div class="flex items-center justify-between">
                 <UCheckbox label="Lembrar de mim" />
-                <!-- <NuxtLink
-                  to="/auth/recover"
-                  class="text-sm text-primary-600 hover:text-primary-500"
-                >
-                  Esqueceu a senha?
-                </NuxtLink> -->
               </div>
 
-              <UButton
-                type="submit"
-                color="primary"
-                block
-                size="lg"
-                :loading="isLoading"
-                :disabled="!form.email || !form.password || !!emailError"
-              >
+              <UButton type="submit" color="primary" block size="lg" :loading="isLoading"
+                :disabled="!form.email || !form.password || !!emailError">
                 Entrar
               </UButton>
             </form>
           </UCard>
 
-          <!-- Dev hint -->
-          <UAlert
-            class="mt-4"
-            icon="i-lucide-info"
-            color="info"
-            variant="subtle"
-            title="Credenciais de teste"
-          >
-            <template #description>
-              <p class="text-sm">
-                Cliente: <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">cliente@blanco.com</code><br>
-                Admin: <code class="bg-gray-100 dark:bg-gray-800 px-1 rounded">admin@blanco.com</code><br>
-                Senha: qualquer valor
-              </p>
-            </template>
-          </UAlert>
+          <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+            <NuxtLink to="/auth/register" class="text-primary-600 hover:text-primary-500 font-medium">
+              Não tem uma conta? Registre-se
+            </NuxtLink>
+          </p>
         </div>
       </div>
 
       <!-- Right side - Decorative -->
       <div class="hidden lg:flex flex-1 bg-primary-600 items-center justify-center p-8">
         <div class="text-center text-white">
-          <UIcon
-            name="i-lucide-trending-up"
-            class="w-24 h-24 mb-6 opacity-80"
-          />
+          <UIcon name="i-lucide-trending-up" class="w-24 h-24 mb-6 opacity-80" />
           <h2 class="text-3xl font-bold mb-4">
             Invista com segurança
           </h2>
@@ -183,9 +129,7 @@ async function handleLogin() {
         </div>
       </div>
     </div>
-    <UToast />
   </UApp>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

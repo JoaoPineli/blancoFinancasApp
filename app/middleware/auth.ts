@@ -1,6 +1,7 @@
 /**
  * Authentication middleware.
  * Protects /client and /admin routes.
+ * Redirects REGISTERED users to /auth/confirm.
  * Per guardrails:
  * - Route protection is NOT authorization (backend must verify)
  * - Every privileged action must be authorized server-side
@@ -24,6 +25,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // User must be authenticated
   if (!auth.isAuthenticated.value) {
     return navigateTo('/auth')
+  }
+
+  // REGISTERED users must confirm their email first
+  if (auth.isRegistered.value) {
+    return navigateTo('/auth/confirm')
   }
 
   // Check role-based access

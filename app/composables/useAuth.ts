@@ -4,6 +4,7 @@
  */
 
 export type UserRole = 'client' | 'admin'
+export type UserStatus = 'registered' | 'active' | 'inactive' | 'defaulting'
 
 export interface User {
   id: string
@@ -11,6 +12,7 @@ export interface User {
   role: UserRole
   email: string
   cpfCnpj: string
+  status: UserStatus
 }
 
 export interface AuthState {
@@ -44,10 +46,12 @@ export function useAuth() {
 
   const isAdmin = computed(() => user.value?.role === 'admin')
 
+  const isRegistered = computed(() => user.value?.status === 'registered')
+
+  const isActive = computed(() => user.value?.status === 'active')
+
   /**
    * Login user and store session.
-   * Note: In production, this would call the backend.
-   * Currently uses mock data for development.
    */
   async function login(email: string, password: string): Promise<{ success: boolean, error?: string }> {
     type LoginResponse = {
@@ -79,14 +83,9 @@ export function useAuth() {
       }
 
       token.value = data.access_token
-      const authUser = {
-        id: data.user_id,
-        name: data.name,
-        role: data.role,
-        email: 'teste@teste.com',
-        cpfCnpj: '12345678901'
-      }
-      user.value = authUser
+
+      // After login, fetch full profile to get status
+      await initialize()
 
       return { success: true }
     }
@@ -120,6 +119,7 @@ export function useAuth() {
         email: string
         cpf: string
         role: UserRole
+        status: UserStatus
       }>('/v1/auth/me')
 
       if (apiError || !data) {
@@ -134,7 +134,8 @@ export function useAuth() {
         name: data.name,
         email: data.email,
         cpfCnpj: data.cpf,
-        role: data.role
+        role: data.role,
+        status: data.status
       }
     }
   }
@@ -145,6 +146,8 @@ export function useAuth() {
     isAuthenticated,
     isClient,
     isAdmin,
+    isRegistered,
+    isActive,
     login,
     logout,
     initialize

@@ -9,11 +9,7 @@ definePageMeta({
 })
 
 const { clients } = useMockData()
-const { planSummaries, fetchPlanSummaries, isLoading: isPlansLoading } = usePlansApi()
 const toast = useToast()
-
-// Modal state
-const isAddClientModalOpen = ref(false)
 
 function handleViewClient(clientId: string) {
   toast.add({
@@ -23,30 +19,9 @@ function handleViewClient(clientId: string) {
   })
 }
 
-interface NewClientFormData {
-  name: string
-  email: string
-  planId: string
-}
-
-function handleAddClient(data: NewClientFormData) {
-  toast.add({
-    title: 'Cliente adicionado',
-    description: `Cliente ${data.name} cadastrado com sucesso. (Mock)`,
-    color: 'success'
-  })
-  isAddClientModalOpen.value = false
-}
-
 const totalClients = computed(() => clients.length)
 const activeClients = computed(() => clients.filter(c => c.status === 'active').length)
 const defaultingClients = computed(() => clients.filter(c => c.status === 'defaulting').length)
-
-watch(isAddClientModalOpen, async (open) => {
-  if (open) {
-    await fetchPlanSummaries()
-  }
-})
 </script>
 
 <template>
@@ -144,23 +119,9 @@ watch(isAddClientModalOpen, async (open) => {
     <!-- Client Table -->
     <UCard>
       <template #header>
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Lista de Clientes
-          </h2>
-          <UButton
-            color="primary"
-            variant="solid"
-            :loading="isPlansLoading"
-            @click="isAddClientModalOpen = true"
-          >
-            <UIcon
-              name="i-lucide-user-plus"
-              class="w-4 h-4 mr-2"
-            />
-            Adicionar Cliente
-          </UButton>
-        </div>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Lista de Clientes
+        </h2>
       </template>
 
       <AdminClientTable
@@ -168,13 +129,5 @@ watch(isAddClientModalOpen, async (open) => {
         @view="handleViewClient"
       />
     </UCard>
-
-    <!-- Add Client Modal -->
-    <AdminAddClientModal
-      v-model:open="isAddClientModalOpen"
-      :plans="planSummaries"
-      @submit="handleAddClient"
-      @close="isAddClientModalOpen = false"
-    />
   </div>
 </template>

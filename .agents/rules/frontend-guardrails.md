@@ -84,9 +84,7 @@ All such values **must come from the backend already computed**.
 
 ### 3.1 Single API Gateway
 
-All HTTP interaction must go through a single composable:
-
-This composable is responsible for:
+All HTTP interaction must go through a single composable responsible for:
 
 - Attaching auth credentials
 - Normalizing errors
@@ -94,8 +92,6 @@ This composable is responsible for:
 - Rejecting unexpected response shapes
 
 Direct `useFetch` calls in pages or components are forbidden.
-
----
 
 ### 3.2 Error Normalization
 
@@ -111,21 +107,17 @@ All API errors must resolve into a shared shape:
 
 ### 3.3 Authentication Failure Handling
 
-Authentication failures must be handled deterministically and centrally.
-
 - **401 (Unauthorized)**:
-
   - Immediately invalidate all local session state.
   - Remove authentication cookies via `useCookie`.
   - Redirect the user to the login screen.
   - Do **not** retry the request automatically.
 - **403 (Forbidden)**:
-
   - Treat as a role or permission violation.
   - Display an explicit authorization error to the user.
   - Do **not** downgrade, retry, or silently ignore the error.
 
-Silent auth failures are forbidden. Any ambiguous auth state must be resolved by forcing re-authentication.
+Silent auth failures are forbidden.
 
 ---
 
@@ -145,29 +137,21 @@ Silent auth failures are forbidden. Any ambiguous auth state must be resolved by
 
 Any violation is a security defect.
 
----
-
 ### 4.2 Session Expiration & Refresh
 
 - The frontend must assume sessions can expire at any time.
 - On expiration:
   - All protected UI must immediately lock.
   - Cached sensitive data must be cleared.
-- Token refresh, if supported, must:
-  - Be handled centrally in the API layer
-  - Never be implemented ad hoc per page
+- Token refresh, if supported, must be handled centrally in the API layer.
 
 If refresh behavior is undefined, forced logout is the correct behavior.
-
----
 
 ### 4.3 Role Enforcement
 
 - Route protection is **not** authorization.
 - Every privileged action must be authorized server-side.
-- The frontend must assume:
-  - Routes can be manually accessed
-  - Requests can be replayed or modified
+- The frontend must assume routes can be manually accessed and requests can be replayed.
 
 Admin UI access does not imply admin privileges.
 
@@ -185,8 +169,6 @@ Frontend validation exists only to:
 
 Frontend validation must never be treated as authoritative or complete.
 
----
-
 ### 5.2 Backend Parity Rule
 
 - Frontend validation rules must match backend rules exactly.
@@ -196,22 +178,14 @@ Frontend validation must never be treated as authoritative or complete.
 
 When in doubt, allow input and let the backend reject it.
 
----
-
 ### 5.3 Deterministic Identifier Validation
 
-- CPF and CNPJ validation must:
-  - Use deterministic checksum algorithms
-  - Reject invalid but well-formatted values
+- CPF and CNPJ validation must use deterministic checksum algorithms.
 - Regex-only validation is insufficient and forbidden.
 
 ---
 
 ## 6. Admin Panel Risk Controls
-
-The admin panel is a high-risk interface and must be treated as such.
-
----
 
 ### 6.1 Destructive Action Safeguards
 
@@ -222,15 +196,10 @@ The admin panel is a high-risk interface and must be treated as such.
 
 Undo assumptions are forbidden unless explicitly supported by the backend.
 
----
-
 ### 6.2 Read vs Write Separation
 
 - Read-only views must be visually distinct from mutable interfaces.
-- Write actions must:
-  - Be intentional
-  - Be clearly labeled
-  - Never be triggered implicitly
+- Write actions must be intentional, clearly labeled, and never triggered implicitly.
 
 Silent mutations are unacceptable.
 
@@ -247,13 +216,9 @@ Global state (`useState`) is restricted to:
 
 Financial or transactional data must not be globally cached by default.
 
----
-
 ### 7.2 State Lifecycle Discipline
 
-- State must have:
-  - A clear owner
-  - A defined lifecycle
+- State must have a clear owner and a defined lifecycle.
 - Stale state must be purged on:
   - Logout
   - Role change
@@ -265,13 +230,7 @@ Implicit persistence is forbidden.
 
 ## 8. Dependency Policy
 
-### 8.1 Default Position
-
 Adding new dependencies is disallowed by default.
-
----
-
-### 8.2 Exception Criteria
 
 A new dependency may be introduced only if it:
 
@@ -285,8 +244,6 @@ Developer convenience is not a valid justification.
 
 ## 9. Mocking & Test Data
 
-### 9.1 Permitted Mock Behavior
-
 Mocks may:
 
 - Simulate API response shapes
@@ -298,26 +255,13 @@ Mocks must never:
 - Approximate yields, interest, or balances
 - Mask missing backend contracts
 
----
-
-### 9.2 Uncertainty Disclosure
-
-When data or rules are unknown:
-
-1. Uncertainty must be explicit
-1. Placeholders must be labeled
-1. Assumptions must not be hidden
-
-Guessing is a defect.
+Uncertainty and placeholders must be clearly labeled. Guessing is a defect.
 
 ---
 
 ## 10. AI Agent Constraints
 
 This document applies to all AI agents, including **Antigravity**.
-For detailed operational instructions (workflow, tech stack, file locations), see [`agent-instructions.md`](./agent-instructions.md).
-
-AI-generated code and suggestions are constrained by default.
 
 AI must not:
 
