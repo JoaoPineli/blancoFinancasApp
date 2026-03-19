@@ -180,16 +180,24 @@ watch(activeTab, (tab) => {
 
 // --- Init ---
 onMounted(async () => {
-  await fetchPayableInstallments()
+  // Respect tab from query params before fetching
+  const queryTab = route.query.tab as string | undefined
+  if (queryTab === 'withdraw' || queryTab === 'history' || queryTab === 'pay') {
+    activeTab.value = queryTab
+  }
 
-  // Pre-select from query params
+  // Pre-select subscription from query params
   if (preselectedSubscriptionId.value) {
     selectedIds.value = new Set([preselectedSubscriptionId.value])
-    // If coming with tab=withdraw, switch tab
-    if (route.query.tab === 'withdraw') {
-      activeTab.value = 'withdraw'
-      await fetchWithdrawableSubscriptions()
-    }
+  }
+
+  // Fetch data for the active tab
+  if (activeTab.value === 'pay') {
+    await fetchPayableInstallments()
+  } else if (activeTab.value === 'withdraw') {
+    await fetchWithdrawableSubscriptions()
+  } else if (activeTab.value === 'history') {
+    await fetchHistory()
   }
 })
 </script>

@@ -47,6 +47,10 @@ export function useCurrency() {
     const d = typeof date === 'string' ? new Date(date) : date
     return d.toLocaleDateString('pt-BR')
   }
+  function formateTime(date: Date | string): string {
+    const d = typeof date === 'string' ? new Date(date) : date
+    return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  }
 
   /**
    * Formats a date with time for display in Brazilian format.
@@ -69,6 +73,7 @@ export function useCurrency() {
     formatPercent,
     formatDate,
     formatDateTime,
-    formatDayOfMonth
+    formatDayOfMonth,
+    formateTime
   }
 }

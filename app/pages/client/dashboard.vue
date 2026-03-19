@@ -3,7 +3,7 @@
  * Client Dashboard page.
  * Per guardrails:
  * - Pages orchestrate data fetching and pass to components
- * - All financial values are from backend (mock)
+ * - All financial values are from backend
  * - No calculations performed here
  */
 
@@ -11,11 +11,15 @@ definePageMeta({
   middleware: ['auth']
 })
 
-const { clientDashboard, installments } = useMockData()
-const { formatCurrency, formatDate, formatPercent } = useCurrency()
-const { getDashboardDueStatus } = useSubscriptionsApi()
+const { formatCurrency } = useCurrency()
+const { sortSubscriptions } = useSubscriptionHelpers()
 
-// Due/overdue status for the deposit banner
+// Dashboard summary
+const { dashboard, isLoading: isDashboardLoading, error: dashboardError, fetchDashboard } = useDashboardApi()
+
+// Subscriptions + due status
+const { subscriptions, isLoading: isSubsLoading, fetchSubscriptions, getDashboardDueStatus } = useSubscriptionsApi()
+
 const overduePlans = ref<Array<{ subscriptionId: string, planTitle: string, name: string, nextDueDate: string }>>([])
 const dueTodayPlans = ref<Array<{ subscriptionId: string, planTitle: string, name: string, nextDueDate: string }>>([])
 
@@ -32,27 +36,40 @@ const bannerPlanNames = computed(() => {
   return dueTodayPlans.value.map(p => p.name || p.planTitle).join(', ')
 })
 
-// Mock yield history data (from backend)
-const yieldHistory = [
-  { month: 'Set', valueCents: 21500 },
-  { month: 'Out', valueCents: 21800 },
-  { month: 'Nov', valueCents: 22200 },
-  { month: 'Dez', valueCents: 22500 },
-  { month: 'Jan', valueCents: 22850 }
-]
+const topSubscriptions = computed(() =>
+  sortSubscriptions(subscriptions.value, 'next-due').slice(0, 3)
+)
 
-const activePlan = computed(() => {
-  if (!clientDashboard.activePlanId) return null
-  const { getPlanById } = useMockData()
-  return getPlanById(clientDashboard.activePlanId)
-})
+// Finance data (installments + history)
+const {
+  payableInstallments,
+  historyEvents,
+  isLoading: isFinanceLoading,
+  fetchPayableInstallments,
+  fetchHistory
+} = useFinanceApi()
+
+const topInstallments = computed(() => payableInstallments.value.slice(0, 3))
+
+const recentInstallmentPayments = computed(() =>
+  historyEvents.value
+    .filter(e => e.eventType === 'installment_payment')
+    .slice(0, 5)
+)
 
 onMounted(async () => {
-  const status = await getDashboardDueStatus()
-  if (status) {
-    overduePlans.value = status.overduePlans
-    dueTodayPlans.value = status.dueTodayPlans
-  }
+  await Promise.all([
+    fetchDashboard(),
+    fetchSubscriptions(),
+    fetchPayableInstallments(),
+    fetchHistory(20, 0),
+    getDashboardDueStatus().then((status) => {
+      if (status) {
+        overduePlans.value = status.overduePlans
+        dueTodayPlans.value = status.dueTodayPlans
+      }
+    })
+  ])
 })
 </script>
 
@@ -63,21 +80,21 @@ onMounted(async () => {
         Dashboard
       </h1>
       <p class="text-gray-600 dark:text-gray-400">
-        Acompanhe seus investimentos e rendimentos.
+        Acompanhe seus planos e retornos.
       </p>
     </div>
 
-    <!-- Deposit Due / Overdue Banner (non-dismissible) -->
+    <!-- Deposit Due / Overdue Banner -->
     <div
       v-if="bannerSeverity === 'error'"
-      class="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950 p-4 flex items-start gap-3"
+      class="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950 p-4 flex items-center gap-3"
       role="alert"
     >
       <UIcon
         name="i-lucide-alert-circle"
         class="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0"
       />
-      <div>
+      <div class="flex-1">
         <p class="text-sm font-semibold text-red-800 dark:text-red-200">
           Depósitos em atraso
         </p>
@@ -85,6 +102,15 @@ onMounted(async () => {
           Pagamentos pendentes para: {{ bannerPlanNames }}
         </p>
       </div>
+      <NuxtLink to="/client/finance?tab=pay">
+        <UButton
+          size="sm"
+          color="error"
+          variant="soft"
+        >
+          Ir para pagamentos
+        </UButton>
+      </NuxtLink>
     </div>
 
     <div
@@ -96,7 +122,7 @@ onMounted(async () => {
         name="i-lucide-alert-triangle"
         class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"
       />
-      <div>
+      <div class="flex-1">
         <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
           Depósitos vencem hoje
         </p>
@@ -104,126 +130,72 @@ onMounted(async () => {
           Pagamentos pendentes para: {{ bannerPlanNames }}
         </p>
       </div>
+      <NuxtLink to="/client/finance?tab=pay">
+        <UButton
+          size="sm"
+          color="warning"
+          variant="soft"
+        >
+          Ir para pagamentos
+        </UButton>
+      </NuxtLink>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Dashboard load error -->
+    <UAlert
+      v-if="dashboardError"
+      color="error"
+      variant="soft"
+      icon="i-lucide-alert-circle"
+      title="Não foi possível carregar seu dashboard agora."
+    />
+
+    <!-- Row 1: Summary cards — equal height via items-stretch -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+      <div
+        v-if="isDashboardLoading"
+        class="h-28 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse"
+      />
       <ClientBalanceCard
-        title="Saldo Total"
-        :value="formatCurrency(clientDashboard.totalBalanceCents)"
+        v-else
+        title="Saldo total"
+        :value="dashboard ? formatCurrency(dashboard.totalBalanceCents) : '—'"
         icon="i-lucide-wallet"
         trend="up"
       />
+
+      <div
+        v-if="isDashboardLoading"
+        class="h-28 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse"
+      />
       <ClientBalanceCard
-        title="Rendimento do Mês"
-        :value="formatCurrency(clientDashboard.yieldThisMonthCents)"
+        v-else
+        title="Lucro do mês"
+        :value="dashboard ? formatCurrency(dashboard.yieldThisMonthCents) : '—'"
         icon="i-lucide-trending-up"
         trend="up"
-      />
-      <ClientBalanceCard
-        title="Próximo Pagamento"
-        :value="formatCurrency(clientDashboard.nextPaymentCents)"
-        icon="i-lucide-calendar"
-        :subtitle="formatDate(clientDashboard.nextPaymentDate)"
+        :subtitle="dashboard ? `Referência: ${dashboard.referenceMonth}` : undefined"
       />
     </div>
 
-    <!-- Active Plan -->
-    <UCard v-if="activePlan">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Plano Ativo
-          </h2>
-          <UBadge
-            color="success"
-            variant="subtle"
-          >
-            Ativo
-          </UBadge>
-        </div>
-      </template>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            Nome do Plano
-          </p>
-          <p class="font-medium text-gray-900 dark:text-white">
-            {{ activePlan.name }}
-          </p>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            Rendimento Mensal
-          </p>
-          <p class="font-medium text-green-600 dark:text-green-400">
-            {{ formatPercent(activePlan.yieldRateMonthly) }}
-          </p>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            Prazo
-          </p>
-          <p class="font-medium text-gray-900 dark:text-white">
-            {{ activePlan.termMonths }} meses
-          </p>
-        </div>
-      </div>
-
-      <template #footer>
-        <NuxtLink to="/client/plans">
-          <UButton
-            variant="soft"
-            trailing-icon="i-lucide-arrow-right"
-          >
-            Ver detalhes do plano
-          </UButton>
-        </NuxtLink>
-      </template>
-    </UCard>
-
-    <!-- Charts and History -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <ClientYieldChart :data="yieldHistory" />
-      <ClientInstallmentTimeline :installments="installments.slice(0, 4)" />
+    <!-- Row 2: Plans + Payable installments — equal height via items-stretch -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+      <ClientDashboardPlansCard
+        :subscriptions="topSubscriptions"
+        :is-loading="isSubsLoading"
+      />
+      <ClientDashboardInstallmentsCard
+        :installments="topInstallments"
+        :is-loading="isFinanceLoading"
+      />
     </div>
 
-    <!-- Quick Actions -->
-    <UCard>
-      <template #header>
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Ações Rápidas
-        </h2>
-      </template>
-
-      <div class="flex flex-wrap gap-3">
-        <NuxtLink to="/client/finance">
-          <UButton
-            icon="i-lucide-plus"
-            color="primary"
-          >
-            Novo Depósito
-          </UButton>
-        </NuxtLink>
-        <NuxtLink to="/client/finance">
-          <UButton
-            icon="i-lucide-arrow-up-right"
-            variant="soft"
-          >
-            Solicitar Saque
-          </UButton>
-        </NuxtLink>
-        <NuxtLink to="/client/support">
-          <UButton
-            icon="i-lucide-message-circle"
-            variant="soft"
-            color="neutral"
-          >
-            Falar com Suporte
-          </UButton>
-        </NuxtLink>
-      </div>
-    </UCard>
+    <!-- Row 3: Payment history + Shortcuts — equal height via items-stretch -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+      <ClientHistoricoParcelasCard
+        :events="recentInstallmentPayments"
+        :is-loading="isFinanceLoading"
+      />
+    </div>
   </div>
 </template>
