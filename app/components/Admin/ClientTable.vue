@@ -1,22 +1,28 @@
 <script setup lang="ts">
 /**
- * ClientTable component for Admin.
- * Uses UTable (Nuxt UI) with search and filtering.
- * Per guardrails: Read-only views must be visually distinct.
+ * AdminClientTable — renders the paginated client list.
+ *
+ * Receives already-filtered, already-paginated clients from the page.
+ * Does NOT apply any search or filtering internally — the parent page
+ * controls search/filter/pagination and passes only the current page's rows.
+ *
+ * Per guardrails: render-only, emits user intent.
  */
 
-interface Client {
+export interface AdminClientRow {
   id: string
   name: string
   email: string
-  cpfCnpj: string
-  status: 'active' | 'inactive' | 'defaulting'
+  cpf: string | null
+  status: string
+  phone: string | null
   totalInvestedCents: number
-  joinedAt: string
+  createdAt: string
 }
 
 const props = defineProps<{
-  clients: Client[]
+  clients: AdminClientRow[]
+  isLoading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -25,98 +31,36 @@ const emit = defineEmits<{
 
 const { formatCurrency, formatDate } = useCurrency()
 
-// Search and filter state
-const search = ref('')
-const statusFilter = ref<Client['status'] | 'all'>('all')
-
-const statusOptions = [
-  { value: 'all', label: 'Todos' },
-  { value: 'active', label: 'Ativo' },
-  { value: 'inactive', label: 'Inativo' },
-  { value: 'defaulting', label: 'Inadimplente' }
-]
-
-// Filtered clients
-const filteredClients = computed(() => {
-  let result = props.clients
-
-  // Apply status filter
-  if (statusFilter.value !== 'all') {
-    result = result.filter(c => c.status === statusFilter.value)
-  }
-
-  // Apply search filter
-  if (search.value) {
-    const searchLower = search.value.toLowerCase()
-    result = result.filter(c =>
-      c.name.toLowerCase().includes(searchLower) ||
-      c.email.toLowerCase().includes(searchLower) ||
-      c.cpfCnpj.includes(search.value)
-    )
-  }
-
-  return result
-})
-
-// Table columns - Nuxt UI v3 uses accessorKey for TanStack Table
 const columns = [
   { id: 'name', accessorKey: 'name', header: 'Nome' },
   { id: 'email', accessorKey: 'email', header: 'Email' },
-  { id: 'cpfCnpj', accessorKey: 'cpfCnpj', header: 'CPF/CNPJ' },
+  { id: 'cpf', accessorKey: 'cpf', header: 'CPF' },
   { id: 'status', accessorKey: 'status', header: 'Status' },
   { id: 'totalInvestedCents', accessorKey: 'totalInvestedCents', header: 'Total Investido' },
-  { id: 'joinedAt', accessorKey: 'joinedAt', header: 'Cliente desde' },
+  { id: 'createdAt', accessorKey: 'createdAt', header: 'Cliente desde' },
   { id: 'actions', header: 'Ações' }
 ]
-
-function _getStatusColor(status: Client['status']): string {
-  switch (status) {
-    case 'active':
-      return 'success'
-    case 'inactive':
-      return 'neutral'
-    case 'defaulting':
-      return 'error'
-    default:
-      return 'neutral'
-  }
-}
-
-function _getStatusLabel(status: Client['status']): string {
-  switch (status) {
-    case 'active':
-      return 'Ativo'
-    case 'inactive':
-      return 'Inativo'
-    case 'defaulting':
-      return 'Inadimplente'
-    default:
-      return status
-  }
-}
 </script>
 
 <template>
-  <div class="space-y-4">
-    <!-- Filters -->
-    <div class="flex flex-col sm:flex-row gap-4">
-      <UInput
-        v-model="search"
-        placeholder="Buscar por nome, email ou CPF/CNPJ..."
-        icon="i-lucide-search"
-        class="flex-1"
-      />
-      <USelect
-        v-model="statusFilter"
-        :items="statusOptions"
-        class="w-full sm:w-48"
+  <div>
+    <!-- Loading skeleton rows -->
+    <div
+      v-if="isLoading"
+      class="space-y-2"
+    >
+      <div
+        v-for="i in 5"
+        :key="i"
+        class="h-12 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse"
       />
     </div>
 
     <!-- Table -->
     <UTable
+      v-else
       :columns="columns"
-      :data="filteredClients"
+      :data="clients"
     >
       <template #name-cell="{ row }">
         <span class="font-medium text-gray-900 dark:text-white">
@@ -124,16 +68,24 @@ function _getStatusLabel(status: Client['status']): string {
         </span>
       </template>
 
+      <template #cpf-cell="{ row }">
+        <span class="font-mono text-sm text-gray-600 dark:text-gray-300">
+          {{ row.original.cpf ?? '—' }}
+        </span>
+      </template>
+
       <template #status-cell="{ row }">
-        <AdminStatusBadge :status="row.original.status" />
+        <AdminStatusBadge :status="row.original.status" class="w-23 justify-center"/>
       </template>
 
       <template #totalInvestedCents-cell="{ row }">
-        {{ formatCurrency(row.original.totalInvestedCents) }}
+        <span class="font-medium">
+          {{ formatCurrency(row.original.totalInvestedCents) }}
+        </span>
       </template>
 
-      <template #joinedAt-cell="{ row }">
-        {{ formatDate(row.original.joinedAt) }}
+      <template #createdAt-cell="{ row }">
+        {{ formatDate(row.original.createdAt) }}
       </template>
 
       <template #actions-cell="{ row }">
@@ -142,14 +94,22 @@ function _getStatusLabel(status: Client['status']): string {
           color="neutral"
           variant="ghost"
           size="sm"
+          aria-label="Ver detalhes"
           @click="emit('view', row.original.id)"
         />
       </template>
     </UTable>
 
     <!-- Empty state -->
-    <div v-if="filteredClients.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
-      Nenhum cliente encontrado.
+    <div
+      v-if="!isLoading && clients.length === 0"
+      class="text-center py-10 text-gray-500 dark:text-gray-400"
+    >
+      <UIcon
+        name="i-lucide-users"
+        class="w-10 h-10 mx-auto mb-2 text-gray-300 dark:text-gray-600"
+      />
+      <p>Nenhum cliente encontrado.</p>
     </div>
   </div>
 </template>

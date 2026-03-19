@@ -62,7 +62,7 @@ const menuItems = computed(() => [
 
 <template>
   <div
-    class="flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4 px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+    class="flex flex-wrap md:flex-nowrap items-center gap-3 px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
     role="listitem"
   >
     <!-- Name -->
