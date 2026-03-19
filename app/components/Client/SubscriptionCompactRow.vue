@@ -79,7 +79,7 @@ const menuItems = computed(() => [
     </div>
 
     <!-- Progress mini bar -->
-    <div class="shrink-0 order-2 md:order-2">
+    <div class="shrink-0 w-24 order-2 md:order-2">
       <ClientSubscriptionProgressBar
         :accumulated-cents="totalAccumulatedCents"
         :target-cents="sub.targetAmountCents"
@@ -94,7 +94,7 @@ const menuItems = computed(() => [
     </div>
 
     <!-- Next due -->
-    <div class="shrink-0 text-sm text-right order-4 md:order-4">
+    <div class="shrink-0 w-28 text-sm text-right order-4 md:order-4">
       <p class="text-gray-700 dark:text-gray-300">
         {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
       </p>
@@ -107,7 +107,7 @@ const menuItems = computed(() => [
     </div>
 
     <!-- Status -->
-    <div class="shrink-0 order-5">
+    <div class="shrink-0 w-28 flex justify-end order-5">
       <UBadge
         :color="statusColor(sub.status)"
         :aria-label="statusAriaLabel(sub.status)"
