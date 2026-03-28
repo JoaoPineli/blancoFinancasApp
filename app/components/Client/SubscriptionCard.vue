@@ -19,7 +19,7 @@ import type { Subscription } from '~/composables/useSubscriptionsApi'
 import { FEE_ATTENTION_THRESHOLD_PERCENT } from '~/composables/useSubscriptionHelpers'
 
 export interface SubscriptionAction {
-  type: 'edit' | 'pause' | 'resume' | 'terminate' | 'history' | 'pay' | 'withdraw'
+  type: 'rename' | 'terminate' | 'history' | 'pay' | 'withdraw'
   subscriptionId: string
 }
 
@@ -56,28 +56,20 @@ const showFeeWarning = computed(() =>
 )
 const dueDateLabel = computed(() => daysUntilLabel(sub.value.nextDueDate))
 
+const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
+
 /** Kebab menu items — grouped for UDropdownMenu */
 const menuItems = computed(() => [
   [
-    ...(sub.value.status === 'active'
-      ? [{
-          label: 'Pagar parcela',
-          icon: 'i-lucide-credit-card',
-          onSelect: () => emit('action', { type: 'pay' as const, subscriptionId: sub.value.id })
-        }]
-      : []),
     {
-      label: 'Editar plano',
+      label: 'Alterar nome',
       icon: 'i-lucide-pencil',
-      onSelect: () => emit('action', { type: 'edit', subscriptionId: sub.value.id })
+      onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
     },
     {
-      label: sub.value.status === 'active' ? 'Pausar' : 'Retomar',
-      icon: sub.value.status === 'active' ? 'i-lucide-pause' : 'i-lucide-play',
-      onSelect: () => emit('action', {
-        type: sub.value.status === 'active' ? 'pause' : 'resume',
-        subscriptionId: sub.value.id
-      })
+      label: 'Pagar parcela',
+      icon: 'i-lucide-credit-card',
+      onSelect: () => emit('action', { type: 'pay', subscriptionId: sub.value.id })
     },
     {
       label: 'Ver histórico',
@@ -86,17 +78,18 @@ const menuItems = computed(() => [
     }
   ],
   [
-    {
-      label: 'Retirar valor',
-      icon: 'i-lucide-arrow-up-right',
-      onSelect: () => emit('action', { type: 'withdraw' as const, subscriptionId: sub.value.id })
-    },
-    {
-      label: 'Encerrar',
-      icon: 'i-lucide-x-circle',
-      color: 'error' as const,
-      onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
-    }
+    hasDeposits.value
+      ? {
+          label: 'Retirar valor',
+          icon: 'i-lucide-arrow-up-right',
+          onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
+        }
+      : {
+          label: 'Cancelar plano',
+          icon: 'i-lucide-x-circle',
+          color: 'error' as const,
+          onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
+        }
   ]
 ])
 

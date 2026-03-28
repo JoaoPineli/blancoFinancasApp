@@ -9,15 +9,44 @@
  * - No financial calculations. All data comes from the backend.
  */
 import type { HistoryEvent } from '~/composables/useFinanceApi'
+import type { Subscription } from '~/composables/useSubscriptionsApi'
 
-defineProps<{
+const props = defineProps<{
   events: HistoryEvent[]
   isLoading?: boolean
+  subscriptions?: Subscription[]
+  initialFilterId?: string | null
 }>()
 
 const emit = defineEmits<{
   (e: 'view-payment', paymentId: string): void
 }>()
+
+const selectedSubscriptionId = ref<string | null>(props.initialFilterId ?? null)
+
+watch(() => props.initialFilterId, (val) => {
+  selectedSubscriptionId.value = val ?? null
+})
+
+const filterOptions = computed(() => {
+  if (!props.subscriptions?.length) return []
+  return props.subscriptions.map(s => ({
+    label: s.name || s.planTitle,
+    value: s.id
+  }))
+})
+
+const selectedOption = computed({
+  get: () => filterOptions.value.find(o => o.value === selectedSubscriptionId.value) ?? null,
+  set: (opt) => { selectedSubscriptionId.value = opt?.value ?? null }
+})
+
+const filteredEvents = computed(() => {
+  if (!selectedSubscriptionId.value) return props.events
+  return props.events.filter(e =>
+    e.subscriptionIds.includes(selectedSubscriptionId.value!)
+  )
+})
 
 function isViewable(event: HistoryEvent): boolean {
   return event.eventType === 'installment_payment'
@@ -73,9 +102,24 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'neutral
 <template>
   <UCard>
     <template #header>
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-        Histórico Financeiro
-      </h3>
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Histórico Financeiro
+        </h3>
+        <div
+          v-if="filterOptions.length > 0"
+          class="flex items-center gap-2"
+        >
+          <USelectMenu
+            v-model="selectedOption"
+            :items="filterOptions"
+            value-key="value"
+            placeholder="Todos os planos"
+            class="w-48"
+            clearable
+          />
+        </div>
+      </div>
     </template>
 
     <!-- Loading skeleton -->
@@ -92,11 +136,11 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'neutral
 
     <!-- Events list -->
     <div
-      v-else-if="events.length > 0"
+      v-else-if="filteredEvents.length > 0"
       class="space-y-3"
     >
       <div
-        v-for="event in events"
+        v-for="event in filteredEvents"
         :key="event.id"
         class="flex items-center gap-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
         :class="{ 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors': isViewable(event) }"
@@ -176,11 +220,23 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'neutral
         class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3"
       />
       <p class="text-gray-500 dark:text-gray-400">
-        Nenhum registro financeiro encontrado.
+        {{ selectedSubscriptionId ? 'Nenhum registro para este plano.' : 'Nenhum registro financeiro encontrado.' }}
       </p>
-      <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+      <p
+        v-if="!selectedSubscriptionId"
+        class="text-xs text-gray-400 dark:text-gray-500 mt-1"
+      >
         Quando você pagar parcelas ou retirar valores, eles aparecerão aqui.
       </p>
+      <UButton
+        v-if="selectedSubscriptionId"
+        variant="ghost"
+        size="sm"
+        class="mt-2"
+        @click="selectedSubscriptionId = null"
+      >
+        Ver todos
+      </UButton>
     </div>
   </UCard>
 </template>

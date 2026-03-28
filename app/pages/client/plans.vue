@@ -22,7 +22,8 @@ const {
   subscriptions,
   isLoading,
   error,
-  fetchSubscriptions
+  fetchSubscriptions,
+  renameSubscription
 } = useSubscriptionsApi()
 const { sortSubscriptions } = useSubscriptionHelpers()
 
@@ -40,11 +41,30 @@ function toggleExpand(id: string) {
   expandedId.value = expandedId.value === id ? null : id
 }
 
-// --- Modal ---
+// --- Modals ---
 const showModal = ref(false)
 
 function openModal() {
   showModal.value = true
+}
+
+// Rename modal
+const renameModal = ref<{ open: boolean, subscriptionId: string, currentName: string }>({
+  open: false,
+  subscriptionId: '',
+  currentName: ''
+})
+
+async function handleRenameSubmit(payload: { subscriptionId: string, name: string }) {
+  const result = await renameSubscription(payload.subscriptionId, payload.name)
+  if (result) {
+    renameModal.value.open = false
+    toast.add({
+      title: 'Nome alterado',
+      description: `Poupança renomeada para "${result.name}".`,
+      color: 'success'
+    })
+  }
 }
 
 function handleSubscriptionCreated(data: { planTitle: string, name: string }) {
@@ -58,11 +78,20 @@ function handleSubscriptionCreated(data: { planTitle: string, name: string }) {
 
 // --- Subscription actions ---
 function handleAction(action: SubscriptionAction) {
-  // Navigate to finance page with context
+  if (action.type === 'rename') {
+    const sub = subscriptions.value.find(s => s.id === action.subscriptionId)
+    renameModal.value = {
+      open: true,
+      subscriptionId: action.subscriptionId,
+      currentName: sub?.name || sub?.planTitle || ''
+    }
+    return
+  }
+
   if (action.type === 'pay') {
     navigateTo({
       path: '/client/finance',
-      query: { subscription: action.subscriptionId }
+      query: { subscription: action.subscriptionId, tab: 'pay' }
     })
     return
   }
@@ -78,21 +107,15 @@ function handleAction(action: SubscriptionAction) {
   if (action.type === 'history') {
     navigateTo({
       path: '/client/finance',
-      query: { tab: 'history' }
+      query: { tab: 'history', subscription: action.subscriptionId }
     })
     return
   }
 
-  // Stubs for unimplemented features
-  const actionLabels: Record<string, string> = {
-    edit: 'Editar plano',
-    pause: 'Pausar plano',
-    resume: 'Retomar plano',
-    terminate: 'Encerrar plano'
-  }
+  // terminate — mock for now
   toast.add({
-    title: actionLabels[action.type] || action.type,
-    description: `Ação "${actionLabels[action.type]}" ainda não implementada.`,
+    title: 'Cancelar plano',
+    description: 'Função ainda não implementada.',
     color: 'info'
   })
 }
@@ -276,7 +299,7 @@ onMounted(() => {
     </div>
 
     <!-- Contract section -->
-    <UCard v-if="subscriptions.length > 0">
+    <!-- <UCard v-if="subscriptions.length > 0">
       <template #header>
         <div class="flex items-center gap-2">
           <UIcon
@@ -304,10 +327,10 @@ onMounted(() => {
           Baixar Contrato (PDF)
         </UButton>
       </div>
-    </UCard>
+    </UCard> -->
 
     <!-- FAQ -->
-    <UCard>
+    <!-- <UCard>
       <template #header>
         <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
           Perguntas Frequentes
@@ -330,13 +353,21 @@ onMounted(() => {
           }
         ]"
       />
-    </UCard>
+    </UCard> -->
 
     <!-- New subscription modal -->
     <ClientNewSubscriptionModal
       v-model:open="showModal"
       @created="handleSubscriptionCreated"
       @close="showModal = false"
+    />
+
+    <!-- Rename modal -->
+    <ClientSubscriptionRenameModal
+      v-model:open="renameModal.open"
+      :subscription-id="renameModal.subscriptionId"
+      :current-name="renameModal.currentName"
+      @save="handleRenameSubmit"
     />
   </div>
 </template>

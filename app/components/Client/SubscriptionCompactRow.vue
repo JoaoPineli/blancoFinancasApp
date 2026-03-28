@@ -28,20 +28,19 @@ const totalAccumulatedCents = computed(() =>
   (sub.value.accumulatedCents ?? 0) + sub.value.yieldCents
 )
 
+const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
+
 const menuItems = computed(() => [
   [
     {
-      label: 'Editar plano',
+      label: 'Alterar nome',
       icon: 'i-lucide-pencil',
-      onSelect: () => emit('action', { type: 'edit', subscriptionId: sub.value.id })
+      onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
     },
     {
-      label: sub.value.status === 'active' ? 'Pausar' : 'Retomar',
-      icon: sub.value.status === 'active' ? 'i-lucide-pause' : 'i-lucide-play',
-      onSelect: () => emit('action', {
-        type: sub.value.status === 'active' ? 'pause' : 'resume',
-        subscriptionId: sub.value.id
-      })
+      label: 'Pagar parcela',
+      icon: 'i-lucide-credit-card',
+      onSelect: () => emit('action', { type: 'pay', subscriptionId: sub.value.id })
     },
     {
       label: 'Ver histórico',
@@ -50,12 +49,18 @@ const menuItems = computed(() => [
     }
   ],
   [
-    {
-      label: 'Encerrar',
-      icon: 'i-lucide-x-circle',
-      color: 'error' as const,
-      onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
-    }
+    hasDeposits.value
+      ? {
+          label: 'Retirar valor',
+          icon: 'i-lucide-arrow-up-right',
+          onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
+        }
+      : {
+          label: 'Cancelar plano',
+          icon: 'i-lucide-x-circle',
+          color: 'error' as const,
+          onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
+        }
   ]
 ])
 </script>
@@ -66,7 +71,7 @@ const menuItems = computed(() => [
     role="listitem"
   >
     <!-- Name -->
-    <div class="flex-1 min-w-0 basis-full md:basis-auto order-1">
+    <div class="flex-1 min-w-0 basis-full md:basis-auto">
       <p class="font-medium text-gray-900 dark:text-white truncate">
         {{ sub.name || sub.planTitle }}
       </p>
@@ -79,7 +84,7 @@ const menuItems = computed(() => [
     </div>
 
     <!-- Progress mini bar -->
-    <div class="shrink-0 w-24 order-2 md:order-2">
+    <div class="shrink-0 w-24">
       <ClientSubscriptionProgressBar
         :accumulated-cents="totalAccumulatedCents"
         :target-cents="sub.targetAmountCents"
@@ -88,13 +93,13 @@ const menuItems = computed(() => [
     </div>
 
     <!-- Accumulated value -->
-    <div class="shrink-0 w-28 text-sm text-right text-gray-700 dark:text-gray-300 order-3 md:order-3">
+    <div class="shrink-0 w-28 text-sm text-right text-gray-700 dark:text-gray-300">
       <span class="md:hidden text-xs text-gray-500 mr-1">Acumulado:</span>
       {{ sub.accumulatedCents != null ? formatCurrency(totalAccumulatedCents) : '—' }}
     </div>
 
     <!-- Next due -->
-    <div class="shrink-0 w-28 text-sm text-right order-4 md:order-4">
+    <div class="shrink-0 w-28 text-sm text-right">
       <p class="text-gray-700 dark:text-gray-300">
         {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
       </p>
@@ -107,7 +112,7 @@ const menuItems = computed(() => [
     </div>
 
     <!-- Status -->
-    <div class="shrink-0 w-28 flex justify-end order-5">
+    <div class="shrink-0 w-12 flex justify-end">
       <UBadge
         :color="statusColor(sub.status)"
         :aria-label="statusAriaLabel(sub.status)"
@@ -118,7 +123,7 @@ const menuItems = computed(() => [
     </div>
 
     <!-- Kebab menu -->
-    <div class="shrink-0 order-6">
+    <div class="shrink-0">
       <UDropdownMenu :items="menuItems">
         <UButton
           icon="i-lucide-more-vertical"

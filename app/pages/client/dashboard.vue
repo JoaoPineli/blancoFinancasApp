@@ -40,6 +40,10 @@ const topSubscriptions = computed(() =>
   sortSubscriptions(subscriptions.value, 'next-due').slice(0, 3)
 )
 
+const totalTargetCents = computed(() =>
+  subscriptions.value.reduce((sum, s) => sum + (s.targetAmountCents ?? 0), 0)
+)
+
 // Finance data (installments + history)
 const {
   payableInstallments,
@@ -160,6 +164,7 @@ onMounted(async () => {
         v-else
         title="Saldo total"
         :value="dashboard ? formatCurrency(dashboard.totalBalanceCents) : '—'"
+        :value-suffix="!isSubsLoading && subscriptions.length > 0 ? formatCurrency(totalTargetCents) : undefined"
         icon="i-lucide-wallet"
         trend="up"
       />

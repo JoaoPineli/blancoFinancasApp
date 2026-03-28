@@ -13,6 +13,7 @@
  * - Simple language for low-literacy audience.
  */
 import type { WithdrawableSubscription } from '~/composables/useFinanceApi'
+import type { Subscription } from '~/composables/useSubscriptionsApi'
 
 definePageMeta({
   middleware: ['auth']
@@ -39,6 +40,14 @@ const activeTab = ref('pay')
 // Pre-selections from query params (e.g. from plans page)
 const route = useRoute()
 const preselectedSubscriptionId = computed(() => route.query.subscription as string | undefined)
+const historyFilterId = computed(() =>
+  activeTab.value === 'history' && route.query.subscription
+    ? (route.query.subscription as string)
+    : null
+)
+
+// Subscriptions list (for history filter dropdown)
+const { subscriptions, fetchSubscriptions } = useSubscriptionsApi()
 
 // --- Pay tab state ---
 const selectedIds = ref<Set<string>>(new Set())
@@ -175,7 +184,10 @@ function handleTabChange(tab: string | number) {
 watch(activeTab, (tab) => {
   if (tab === 'pay') fetchPayableInstallments()
   else if (tab === 'withdraw') fetchWithdrawableSubscriptions()
-  else if (tab === 'history') fetchHistory()
+  else if (tab === 'history') {
+    fetchHistory()
+    if (!subscriptions.value.length) fetchSubscriptions()
+  }
 })
 
 // --- Init ---
@@ -197,7 +209,7 @@ onMounted(async () => {
   } else if (activeTab.value === 'withdraw') {
     await fetchWithdrawableSubscriptions()
   } else if (activeTab.value === 'history') {
-    await fetchHistory()
+    await Promise.all([fetchHistory(), fetchSubscriptions()])
   }
 })
 </script>
@@ -404,6 +416,8 @@ onMounted(async () => {
       <ClientFinanceHistoryList
         :events="historyEvents"
         :is-loading="isLoading"
+        :subscriptions="subscriptions"
+        :initial-filter-id="historyFilterId"
         @view-payment="handleViewPayment"
       />
     </div>

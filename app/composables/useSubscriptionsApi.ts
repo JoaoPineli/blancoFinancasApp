@@ -286,6 +286,37 @@ export function useSubscriptionsApi() {
   }
 
   /**
+   * Renames a subscription.
+   */
+  async function renameSubscription(
+    subscriptionId: string,
+    name: string
+  ): Promise<Subscription | null> {
+    const response = await api.patch<SubscriptionApiResponse>(
+      `/v1/subscriptions/${subscriptionId}/name`,
+      { name }
+    )
+
+    if (response.error) {
+      toast.add({
+        title: 'Erro ao renomear poupança',
+        description: response.error.message,
+        color: 'error'
+      })
+      return null
+    }
+
+    if (response.data) {
+      const updated = toSubscription(response.data)
+      const idx = subscriptions.value.findIndex(s => s.id === updated.id)
+      if (idx >= 0) subscriptions.value[idx] = updated
+      return updated
+    }
+
+    return null
+  }
+
+  /**
    * Dashboard due/overdue status types and fetcher.
    */
   interface DuePlanInfo {
@@ -343,6 +374,7 @@ export function useSubscriptionsApi() {
     calculateCost,
     createSubscription,
     updateDepositDay,
+    renameSubscription,
     getDashboardDueStatus
   }
 }

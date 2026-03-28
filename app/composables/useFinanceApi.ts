@@ -92,6 +92,7 @@ export interface HistoryEventApiResponse {
   amount_cents: number
   description: string
   plan_titles: string[]
+  subscription_ids: string[]
   created_at: string
   confirmed_at: string | null
 }
@@ -170,6 +171,7 @@ export interface HistoryEvent {
   amountCents: number
   description: string
   planTitles: string[]
+  subscriptionIds: string[]
   createdAt: string
   confirmedAt: string | null
 }
@@ -242,6 +244,7 @@ function toHistoryEvent(r: HistoryEventApiResponse): HistoryEvent {
     amountCents: r.amount_cents,
     description: r.description,
     planTitles: r.plan_titles,
+    subscriptionIds: r.subscription_ids ?? [],
     createdAt: r.created_at,
     confirmedAt: r.confirmed_at
   }

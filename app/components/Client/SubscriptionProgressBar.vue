@@ -24,9 +24,7 @@ const props = withDefaults(defineProps<{
 const { formatCurrency } = useCurrency()
 
 /** Whether the accumulated value is available from the backend */
-const isAvailable = computed(() =>
-  props.accumulatedCents != null && props.accumulatedCents !== undefined
-)
+const isAvailable = computed(() => props.accumulatedCents != null)
 
 /**
  * Ratio as percentage (can exceed 100).
@@ -69,7 +67,7 @@ const excessCents = computed(() => {
     >
       <div
         v-if="isAvailable"
-        class="h-full rounded-full transition-all duration-300"
+        class="h-full transition-all duration-300"
         :class="isExceeded ? 'bg-green-500' : 'bg-primary-500'"
         :style="{ width: `${visualPercentage}%` }"
       />
@@ -116,13 +114,13 @@ const excessCents = computed(() => {
     <template v-else>
       <span
         v-if="isAvailable"
-        class="text-[10px] text-gray-500 dark:text-gray-400"
+        class="text-xs text-gray-500 dark:text-gray-400 ml-0.5"
       >
         {{ Math.round(percentage) }}%
       </span>
       <span
         v-else
-        class="text-[10px] text-gray-400 dark:text-gray-500"
+        class="text-xs text-gray-400 dark:text-gray-500"
       >
         —
       </span>
