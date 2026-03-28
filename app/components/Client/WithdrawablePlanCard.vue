@@ -91,16 +91,6 @@ const progressPercent = computed(() => {
           Retirar valor
         </UButton>
       </div>
-
-      <!-- Early termination warning -->
-      <UAlert
-        v-if="sub.isEarlyTermination"
-        icon="i-lucide-alert-triangle"
-        color="warning"
-        variant="subtle"
-        title="Encerramento antecipado"
-        description="Ao retirar o valor, este plano será encerrado antes do prazo final."
-      />
     </div>
   </UCard>
 </template>
