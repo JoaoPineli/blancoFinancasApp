@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   variant: 'client' | 'admin'
 }>()
 
@@ -9,6 +9,22 @@ async function handleLogout() {
   auth.logout()
   await navigateTo('/auth')
 }
+
+// Admin notifications polling
+const { notifications, unreadCount, isLoading: notifLoading, fetchUnreadCount, fetchNotifications, markAsRead, markAllAsRead } = useNotificationsApi()
+
+let pollInterval: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  if (props.variant === 'admin') {
+    fetchNotifications()
+    pollInterval = setInterval(fetchUnreadCount, 60000)
+  }
+})
+
+onUnmounted(() => {
+  if (pollInterval) clearInterval(pollInterval)
+})
 </script>
 
 <template>
@@ -21,6 +37,16 @@ async function handleLogout() {
 
     <div class="flex items-center gap-4">
       <UColorModeButton />
+
+      <!-- Admin notifications bell -->
+      <AdminNotificationsDropdown
+        v-if="variant === 'admin'"
+        :notifications="notifications"
+        :unread-count="unreadCount"
+        :is-loading="notifLoading"
+        @mark-as-read="markAsRead"
+        @mark-all-as-read="markAllAsRead"
+      />
 
       <div class="flex items-center gap-3">
         <div class="text-right">

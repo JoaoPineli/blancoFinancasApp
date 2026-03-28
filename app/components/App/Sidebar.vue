@@ -46,6 +46,11 @@ const adminNavItems = [
     label: 'Planos',
     icon: 'i-lucide-clipboard-list',
     to: '/admin/plans'
+  },
+  {
+    label: 'Saques',
+    icon: 'i-lucide-arrow-up-right',
+    to: '/admin/withdrawals'
   }
 ]
 

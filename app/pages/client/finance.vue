@@ -158,9 +158,12 @@ function handleWithdrawClick(subscriptionId: string) {
   withdrawalModalOpen.value = true
 }
 
-async function handleWithdrawConfirm(subscriptionId: string) {
+async function handleWithdrawConfirm(
+  subscriptionId: string,
+  pixData: { ownerName: string; pixKeyType: string; pixKey: string }
+) {
   isWithdrawing.value = true
-  const result = await requestPlanWithdrawal(subscriptionId)
+  const result = await requestPlanWithdrawal(subscriptionId, pixData)
   isWithdrawing.value = false
 
   if (result) {

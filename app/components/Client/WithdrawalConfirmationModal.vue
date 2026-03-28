@@ -2,8 +2,8 @@
 /**
  * WithdrawalConfirmationModal — confirms plan withdrawal before executing.
  *
- * Shows the subscription name, withdrawable amount, and early termination
- * warning if applicable. User must explicitly confirm.
+ * Collects Pix data (owner name, key type, key) required for the withdrawal.
+ * Shows the subscription details and an ownership warning.
  *
  * Per guardrails:
  * - No financial calculations. All data from the backend.
@@ -19,14 +19,53 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:open', val: boolean): void
-  (e: 'confirm', subscriptionId: string): void
+  (e: 'confirm', subscriptionId: string, pixData: { ownerName: string; pixKeyType: string; pixKey: string }): void
 }>()
 
 const { formatCurrency } = useCurrency()
 
+const ownerName = ref('')
+const pixKeyType = ref('')
+const pixKey = ref('')
+
+const pixKeyTypes = [
+  { label: 'CPF', value: 'cpf' },
+  { label: 'E-mail', value: 'email' },
+  { label: 'Celular', value: 'celular' },
+  { label: 'Chave aleatória', value: 'aleatoria' }
+]
+
+const pixKeyPlaceholder = computed(() => {
+  switch (pixKeyType.value) {
+    case 'cpf': return '000.000.000-00'
+    case 'email': return 'seu@email.com'
+    case 'celular': return '+55 11 99999-9999'
+    case 'aleatoria': return 'Chave aleatória (UUID)'
+    default: return 'Selecione o tipo primeiro'
+  }
+})
+
+const isFormValid = computed(() =>
+  ownerName.value.trim().length >= 3 &&
+  pixKeyType.value !== '' &&
+  pixKey.value.trim().length >= 5
+)
+
+watch(() => props.open, (val) => {
+  if (!val) {
+    ownerName.value = ''
+    pixKeyType.value = ''
+    pixKey.value = ''
+  }
+})
+
 function handleConfirm() {
-  if (props.subscription) {
-    emit('confirm', props.subscription.subscriptionId)
+  if (props.subscription && isFormValid.value) {
+    emit('confirm', props.subscription.subscriptionId, {
+      ownerName: ownerName.value.trim(),
+      pixKeyType: pixKeyType.value,
+      pixKey: pixKey.value.trim()
+    })
   }
 }
 </script>
@@ -39,11 +78,11 @@ function handleConfirm() {
     <template #header>
       <div class="flex items-center gap-2">
         <UIcon
-          name="i-lucide-alert-triangle"
+          name="i-lucide-arrow-up-right"
           class="w-5 h-5 text-amber-500"
         />
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Confirmar retirada
+          Solicitar retirada
         </h3>
       </div>
     </template>
@@ -53,10 +92,7 @@ function handleConfirm() {
         v-if="subscription"
         class="space-y-4"
       >
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          Você está solicitando a retirada do valor da poupança:
-        </p>
-
+        <!-- Plan summary -->
         <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 space-y-2">
           <div class="flex justify-between">
             <span class="text-sm text-gray-500 dark:text-gray-400">Poupança</span>
@@ -88,9 +124,44 @@ function handleConfirm() {
           description="Ao confirmar, este plano será encerrado. Essa ação não pode ser desfeita."
         />
 
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          A retirada será processada em até 3 dias úteis após aprovação.
-        </p>
+        <!-- Ownership notice -->
+        <UAlert
+          icon="i-lucide-shield-check"
+          color="info"
+          variant="subtle"
+          title="Importante"
+          description="Saques só serão realizados para contas cuja titularidade seja a mesma do titular da conta na Blanco Finanças."
+        />
+
+        <!-- Pix form -->
+        <div class="space-y-3">
+          <UFormField label="Nome completo do titular" required>
+            <UInput
+              v-model="ownerName"
+              placeholder="Nome como consta na conta bancária"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Tipo de chave Pix" required>
+            <USelectMenu
+              v-model="pixKeyType"
+              :items="pixKeyTypes"
+              value-key="value"
+              placeholder="Selecione o tipo"
+              class="w-full"
+            />
+          </UFormField>
+
+          <UFormField label="Chave Pix" required>
+            <UInput
+              v-model="pixKey"
+              :placeholder="pixKeyPlaceholder"
+              :disabled="!pixKeyType"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
       </div>
     </template>
 
@@ -106,9 +177,10 @@ function handleConfirm() {
         <UButton
           color="primary"
           :loading="isLoading"
+          :disabled="!isFormValid"
           @click="handleConfirm"
         >
-          Confirmar retirada
+          Solicitar retirada
         </UButton>
       </div>
     </template>

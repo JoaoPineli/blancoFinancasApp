@@ -187,6 +187,27 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'neutral
               · Confirmado em {{ formatDate(event.confirmedAt) }}
             </span>
           </p>
+          <!-- Withdrawal status messages -->
+          <template v-if="event.eventType === 'plan_withdrawal'">
+            <p
+              v-if="event.status === 'pending'"
+              class="text-xs text-amber-600 dark:text-amber-400 mt-1"
+            >
+              Aguardando processamento pelo admin.
+            </p>
+            <p
+              v-else-if="event.status === 'confirmed'"
+              class="text-xs text-green-600 dark:text-green-400 mt-1"
+            >
+              Saque confirmado. O valor estará na sua conta em até 24h.
+            </p>
+            <p
+              v-else-if="event.status === 'cancelled' && event.rejectionReason"
+              class="text-xs text-red-600 dark:text-red-400 mt-1"
+            >
+              Recusado: {{ event.rejectionReason }}
+            </p>
+          </template>
         </div>
 
         <!-- Amount + status + action hint -->

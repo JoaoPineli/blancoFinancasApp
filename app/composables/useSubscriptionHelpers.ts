@@ -35,7 +35,7 @@ export function useSubscriptionHelpers() {
       active: 'Ativa',
       paused: 'Pausada',
       completed: 'Concluída',
-      cancelled: 'Cancelada'
+      cancelled: 'Encerrado'
     }
     return labels[status] || status
   }

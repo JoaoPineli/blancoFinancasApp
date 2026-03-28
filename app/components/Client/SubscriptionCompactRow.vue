@@ -29,45 +29,59 @@ const totalAccumulatedCents = computed(() =>
 )
 
 const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
+const isEnded = computed(() => sub.value.status === 'cancelled' || sub.value.status === 'completed')
 
-const menuItems = computed(() => [
-  [
-    {
-      label: 'Alterar nome',
-      icon: 'i-lucide-pencil',
-      onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
-    },
-    {
-      label: 'Pagar parcela',
-      icon: 'i-lucide-credit-card',
-      onSelect: () => emit('action', { type: 'pay', subscriptionId: sub.value.id })
-    },
-    {
-      label: 'Ver histórico',
-      icon: 'i-lucide-history',
-      onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
-    }
-  ],
-  [
-    hasDeposits.value
-      ? {
-          label: 'Retirar valor',
-          icon: 'i-lucide-arrow-up-right',
-          onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
-        }
-      : {
-          label: 'Cancelar plano',
-          icon: 'i-lucide-x-circle',
-          color: 'error' as const,
-          onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
-        }
+const menuItems = computed(() => {
+  if (isEnded.value) {
+    return [[
+      {
+        label: 'Ver histórico',
+        icon: 'i-lucide-history',
+        onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
+      }
+    ]]
+  }
+
+  return [
+    [
+      {
+        label: 'Alterar nome',
+        icon: 'i-lucide-pencil',
+        onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
+      },
+      {
+        label: 'Pagar parcela',
+        icon: 'i-lucide-credit-card',
+        onSelect: () => emit('action', { type: 'pay', subscriptionId: sub.value.id })
+      },
+      {
+        label: 'Ver histórico',
+        icon: 'i-lucide-history',
+        onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
+      }
+    ],
+    [
+      hasDeposits.value
+        ? {
+            label: 'Retirar valor',
+            icon: 'i-lucide-arrow-up-right',
+            onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
+          }
+        : {
+            label: 'Cancelar plano',
+            icon: 'i-lucide-x-circle',
+            color: 'error' as const,
+            onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
+          }
+    ]
   ]
-])
+})
 </script>
 
 <template>
   <div
     class="flex flex-wrap md:flex-nowrap items-center gap-3 px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+    :class="{ 'opacity-55': isEnded }"
     role="listitem"
   >
     <!-- Name -->
@@ -100,19 +114,21 @@ const menuItems = computed(() => [
 
     <!-- Next due -->
     <div class="shrink-0 w-28 text-sm text-right">
-      <p class="text-gray-700 dark:text-gray-300">
-        {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
-      </p>
-      <p
-        v-if="dueDateLabel"
-        class="text-[10px] text-gray-500 dark:text-gray-400"
-      >
-        {{ dueDateLabel }}
-      </p>
+      <div v-if="sub.status != 'cancelled'">
+        <p class="text-gray-700 dark:text-gray-300">
+          {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
+        </p>
+        <p
+          v-if="dueDateLabel"
+          class="text-[10px] text-gray-500 dark:text-gray-400"
+        >
+          {{ dueDateLabel }}
+        </p>
+      </div>
     </div>
 
     <!-- Status -->
-    <div class="shrink-0 w-12 flex justify-end">
+    <div class="shrink-0 w-15 flex justify-center">
       <UBadge
         :color="statusColor(sub.status)"
         :aria-label="statusAriaLabel(sub.status)"

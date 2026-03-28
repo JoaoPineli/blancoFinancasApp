@@ -57,41 +57,54 @@ const showFeeWarning = computed(() =>
 const dueDateLabel = computed(() => daysUntilLabel(sub.value.nextDueDate))
 
 const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
+const isEnded = computed(() => sub.value.status === 'cancelled' || sub.value.status === 'completed')
 
 /** Kebab menu items — grouped for UDropdownMenu */
-const menuItems = computed(() => [
-  [
-    {
-      label: 'Alterar nome',
-      icon: 'i-lucide-pencil',
-      onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
-    },
-    {
-      label: 'Pagar parcela',
-      icon: 'i-lucide-credit-card',
-      onSelect: () => emit('action', { type: 'pay', subscriptionId: sub.value.id })
-    },
-    {
-      label: 'Ver histórico',
-      icon: 'i-lucide-history',
-      onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
-    }
-  ],
-  [
-    hasDeposits.value
-      ? {
-          label: 'Retirar valor',
-          icon: 'i-lucide-arrow-up-right',
-          onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
-        }
-      : {
-          label: 'Cancelar plano',
-          icon: 'i-lucide-x-circle',
-          color: 'error' as const,
-          onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
-        }
+const menuItems = computed(() => {
+  if (isEnded.value) {
+    return [[
+      {
+        label: 'Ver histórico',
+        icon: 'i-lucide-history',
+        onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
+      }
+    ]]
+  }
+
+  return [
+    [
+      {
+        label: 'Alterar nome',
+        icon: 'i-lucide-pencil',
+        onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
+      },
+      {
+        label: 'Pagar parcela',
+        icon: 'i-lucide-credit-card',
+        onSelect: () => emit('action', { type: 'pay', subscriptionId: sub.value.id })
+      },
+      {
+        label: 'Ver histórico',
+        icon: 'i-lucide-history',
+        onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
+      }
+    ],
+    [
+      hasDeposits.value
+        ? {
+            label: 'Retirar valor',
+            icon: 'i-lucide-arrow-up-right',
+            onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
+          }
+        : {
+            label: 'Cancelar plano',
+            icon: 'i-lucide-x-circle',
+            color: 'error' as const,
+            onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
+          }
+    ]
   ]
-])
+})
 
 /** Fee tooltip text explaining the calculation basis */
 const feeTooltipText = computed(() => {
@@ -101,7 +114,7 @@ const feeTooltipText = computed(() => {
 </script>
 
 <template>
-  <UCard>
+  <UCard :class="{ 'opacity-55': isEnded }">
     <!-- HEADER: Name, overdue badge, status, kebab -->
     <template #header>
       <div class="flex items-center justify-between gap-2">
@@ -150,18 +163,20 @@ const feeTooltipText = computed(() => {
       </div>
 
       <div>
-        <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
-          Próximo vencimento
-        </p>
-        <p class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
-        </p>
-        <p
-          v-if="dueDateLabel"
-          class="text-xs text-gray-500 dark:text-gray-400"
-        >
-          {{ dueDateLabel }}
-        </p>
+        <div v-if="sub.status != 'cancelled'">
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+            Próximo vencimento
+          </p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
+          </p>
+          <p
+            v-if="dueDateLabel"
+            class="text-xs text-gray-500 dark:text-gray-400"
+          >
+            {{ dueDateLabel }}
+          </p>
+        </div>
       </div>
 
       <div>

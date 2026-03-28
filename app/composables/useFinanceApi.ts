@@ -95,6 +95,7 @@ export interface HistoryEventApiResponse {
   subscription_ids: string[]
   created_at: string
   confirmed_at: string | null
+  rejection_reason: string | null
 }
 
 export interface HistoryListApiResponse {
@@ -174,6 +175,7 @@ export interface HistoryEvent {
   subscriptionIds: string[]
   createdAt: string
   confirmedAt: string | null
+  rejectionReason: string | null
 }
 
 // ------------------------------------------------------------------
@@ -246,7 +248,8 @@ function toHistoryEvent(r: HistoryEventApiResponse): HistoryEvent {
     planTitles: r.plan_titles,
     subscriptionIds: r.subscription_ids ?? [],
     createdAt: r.created_at,
-    confirmedAt: r.confirmed_at
+    confirmedAt: r.confirmed_at,
+    rejectionReason: r.rejection_reason ?? null
   }
 }
 
@@ -406,13 +409,21 @@ export function useFinanceApi() {
   /**
    * Requests withdrawal from a subscription with plan closure.
    */
-  async function requestPlanWithdrawal(subscriptionId: string): Promise<PlanWithdrawal | null> {
+  async function requestPlanWithdrawal(
+    subscriptionId: string,
+    pixData: { ownerName: string; pixKeyType: string; pixKey: string }
+  ): Promise<PlanWithdrawal | null> {
     isLoading.value = true
     error.value = null
 
     const response = await api.post<PlanWithdrawalApiResponse>(
       '/v1/finances/plan-withdrawals',
-      { subscription_id: subscriptionId }
+      {
+        subscription_id: subscriptionId,
+        owner_name: pixData.ownerName,
+        pix_key_type: pixData.pixKeyType,
+        pix_key: pixData.pixKey
+      }
     )
 
     if (response.error) {
