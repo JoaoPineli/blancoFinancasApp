@@ -30,6 +30,7 @@ const totalAccumulatedCents = computed(() =>
 
 const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
 const isEnded = computed(() => sub.value.status === 'cancelled' || sub.value.status === 'completed')
+const isInactive = computed(() => sub.value.status === 'inactive')
 
 const menuItems = computed(() => {
   if (isEnded.value) {
@@ -40,6 +41,31 @@ const menuItems = computed(() => {
         onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
       }
     ]]
+  }
+
+  if (isInactive.value) {
+    return [
+      [
+        {
+          label: 'Alterar nome',
+          icon: 'i-lucide-pencil',
+          onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
+        },
+        {
+          label: 'Ativar plano',
+          icon: 'i-lucide-zap',
+          onSelect: () => emit('action', { type: 'activate', subscriptionId: sub.value.id })
+        }
+      ],
+      [
+        {
+          label: 'Cancelar plano',
+          icon: 'i-lucide-x-circle',
+          color: 'error' as const,
+          onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
+        }
+      ]
+    ]
   }
 
   return [
@@ -114,7 +140,12 @@ const menuItems = computed(() => {
 
     <!-- Next due -->
     <div class="shrink-0 w-28 text-sm text-right">
-      <div v-if="sub.status != 'cancelled'">
+      <div v-if="sub.status === 'inactive'">
+        <p class="text-[10px] text-gray-400 dark:text-gray-500 italic">
+          Aguardando ativação
+        </p>
+      </div>
+      <div v-else-if="sub.status !== 'cancelled' && sub.nextDueDate">
         <p class="text-gray-700 dark:text-gray-300">
           {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
         </p>

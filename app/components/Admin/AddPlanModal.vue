@@ -620,13 +620,13 @@ function handleClose() {
 
           <!-- Guarantee Fund Section -->
           <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 border-b pb-2 mt-6">
-            Fundo Garantidor
+            Fundo de proteção
           </h3>
 
           <div class="grid grid-cols-2 gap-8">
             <UFormField
               name="guaranteeFundPercent1"
-              label="Taxa Fundo Garantidor Faixa 1 (%)"
+              label="Taxa Fundo de proteção Faixa 1 (%)"
               required
             >
               <UInput
@@ -641,7 +641,7 @@ function handleClose() {
 
             <UFormField
               name="guaranteeFundPercent2"
-              label="Taxa Fundo Garantidor Faixa 2 (%)"
+              label="Taxa Fundo de proteção Faixa 2 (%)"
               required
             >
               <UInput

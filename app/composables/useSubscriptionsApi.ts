@@ -24,9 +24,10 @@ export interface SubscriptionApiResponse {
   guarantee_fund_percent: number
   total_cost_cents: number
   deposit_day_of_month: number
-  next_due_date: string
+  next_due_date: string | null
   has_overdue_deposit: boolean
   status: string
+  covers_activation_fees: boolean
   created_at: string
   /** Optional: accumulated amount deposited so far (cents). Not yet returned by all endpoints. */
   accumulated_cents?: number | null
@@ -34,6 +35,23 @@ export interface SubscriptionApiResponse {
   deposits_paid?: number | null
   /** Total poupança yield credited so far (cents). */
   yield_cents?: number | null
+}
+
+export interface ActivationPaymentApiResponse {
+  id: string
+  user_id: string
+  subscription_id: string
+  status: string
+  admin_tax_cents: number
+  insurance_cents: number
+  pix_transaction_fee_cents: number
+  total_amount_cents: number
+  pix_qr_code_data: string | null
+  pix_transaction_id: string | null
+  expiration_minutes: number
+  created_at: string
+  updated_at: string
+  confirmed_at: string | null
 }
 
 export interface SubscriptionListApiResponse {
@@ -85,9 +103,10 @@ export interface Subscription {
   guaranteeFundPercent: number
   totalCostCents: number
   depositDayOfMonth: number
-  nextDueDate: string
+  nextDueDate: string | null
   hasOverdueDeposit: boolean
   status: string
+  coversActivationFees: boolean
   createdAt: string
   /** Accumulated amount deposited so far (cents). null/undefined = data not available yet. */
   accumulatedCents?: number | null
@@ -115,6 +134,7 @@ function toSubscription(response: SubscriptionApiResponse): Subscription {
     nextDueDate: response.next_due_date,
     hasOverdueDeposit: response.has_overdue_deposit,
     status: response.status,
+    coversActivationFees: response.covers_activation_fees ?? false,
     createdAt: response.created_at,
     accumulatedCents: response.accumulated_cents ?? null,
     depositsPaid: response.deposits_paid ?? 0,
@@ -170,9 +190,16 @@ export function useSubscriptionsApi() {
       }
     )
 
-    if (response.error) {
+    if (response.error?.httpStatus === 422) {
       toast.add({
-        title: 'Erro na recomendação',
+        title: 'Não foi possível gerar recomendação',
+        description: 'Não encontramos um plano que atenda exatamente ao valor desejado. Tente novamente com um valor diferente.',
+        color: 'error'
+      })
+      return null
+    } else if (response.error) {
+      toast.add({
+        title: 'Erro ao gerar recomendação',
         description: response.error.message,
         color: 'error'
       })
@@ -365,6 +392,47 @@ export function useSubscriptionsApi() {
     return null
   }
 
+  /**
+   * Creates or retrieves the pending activation payment for a subscription.
+   * Idempotent: if a pending payment already exists, returns it.
+   */
+  async function createOrGetActivationPayment(
+    subscriptionId: string
+  ): Promise<ActivationPaymentApiResponse | null> {
+    const response = await api.post<ActivationPaymentApiResponse>(
+      `/v1/subscriptions/${subscriptionId}/activation-payment`,
+      {}
+    )
+
+    if (response.error) {
+      toast.add({
+        title: 'Erro ao gerar pagamento de ativação',
+        description: response.error.message,
+        color: 'error'
+      })
+      return null
+    }
+
+    return response.data ?? null
+  }
+
+  /**
+   * Retrieves the current activation payment for a subscription.
+   */
+  async function getActivationPayment(
+    subscriptionId: string
+  ): Promise<ActivationPaymentApiResponse | null> {
+    const response = await api.get<ActivationPaymentApiResponse>(
+      `/v1/subscriptions/${subscriptionId}/activation-payment`
+    )
+
+    if (response.error) {
+      return null
+    }
+
+    return response.data ?? null
+  }
+
   return {
     subscriptions,
     isLoading,
@@ -375,6 +443,8 @@ export function useSubscriptionsApi() {
     createSubscription,
     updateDepositDay,
     renameSubscription,
-    getDashboardDueStatus
+    getDashboardDueStatus,
+    createOrGetActivationPayment,
+    getActivationPayment
   }
 }

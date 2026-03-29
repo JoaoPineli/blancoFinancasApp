@@ -1,9 +1,12 @@
 <script setup lang="ts">
 /**
  * NewSubscriptionModal component for Client.
- * Two-phase wizard for creating a new plan subscription:
+ * Three-phase wizard for creating a new plan subscription:
  * - Phase 1: Target amount and preference input
  * - Phase 2: Recommendation display with adjustable parameters and cost breakdown
+ * - Phase 3: Activation payment (Pix QR code)
+ *
+ * Can also be opened directly at Phase 3 by passing activateSubscriptionId prop.
  *
  * Per guardrails:
  * - No financial calculations performed here (only simple division for bidirectional binding)
@@ -11,7 +14,12 @@
  * - Component emits user intent (events), parent handles post-creation logic
  */
 import type { FormError } from '@nuxt/ui'
-import type { RecommendationApiResponse, CostApiResponse } from '~/composables/useSubscriptionsApi'
+import type { RecommendationApiResponse, CostApiResponse, ActivationPaymentApiResponse } from '~/composables/useSubscriptionsApi'
+
+const props = defineProps<{
+  /** When set, modal opens directly at Phase 3 for an existing inactive subscription. */
+  activateSubscriptionId?: string
+}>()
 
 const emit = defineEmits<{
   (e: 'created', data: { planTitle: string, name: string }): void
@@ -24,10 +32,11 @@ const { formatCurrency } = useCurrency()
 const {
   getRecommendation,
   calculateCost,
-  createSubscription
+  createSubscription,
+  createOrGetActivationPayment
 } = useSubscriptionsApi()
 
-const modalPhase = ref<'input' | 'recommendation'>('input')
+const modalPhase = ref<'input' | 'recommendation' | 'terms' | 'activation-payment'>('input')
 const modalLoading = ref(false)
 const modalError = ref<string | null>(null)
 
@@ -72,9 +81,28 @@ const adjusting = ref(false)
 const limitWarning = ref<string | null>(null)
 const isCreating = ref(false)
 
-watch(open, (isOpen) => {
+// Phase 3: Terms acknowledgement
+const termsAccepted = ref(false)
+
+// Phase 4: Activation payment (QR code)
+const activationPayment = ref<ActivationPaymentApiResponse | null>(null)
+const createdSubscriptionId = ref<string | null>(null)
+const isLoadingActivation = ref(false)
+
+watch(open, async (isOpen) => {
   if (!isOpen) {
     resetForm()
+    return
+  }
+  // Opened for activating an existing subscription — skip to Phase 3
+  if (props.activateSubscriptionId) {
+    isLoadingActivation.value = true
+    const payment = await createOrGetActivationPayment(props.activateSubscriptionId)
+    isLoadingActivation.value = false
+    if (payment) {
+      activationPayment.value = payment
+      modalPhase.value = 'activation-payment'
+    }
   }
 })
 
@@ -85,6 +113,9 @@ function resetForm() {
   recommendation.value = null
   costBreakdown.value = null
   limitWarning.value = null
+  termsAccepted.value = false
+  activationPayment.value = null
+  createdSubscriptionId.value = null
 }
 
 function handleClose() {
@@ -224,11 +255,23 @@ async function handleConfirmSubscription() {
   )
 
   if (result) {
+    // Emit immediately so the parent list updates before QR code is generated
     emit('created', { planTitle: result.planTitle, name: result.name })
-    open.value = false
+    createdSubscriptionId.value = result.id
+    const payment = await createOrGetActivationPayment(result.id)
+    if (payment) {
+      activationPayment.value = payment
+      modalPhase.value = 'activation-payment'
+    } else {
+      open.value = false
+    }
   }
 
   isCreating.value = false
+}
+
+function handleActivationPaymentDone() {
+  open.value = false
 }
 </script>
 
@@ -239,7 +282,12 @@ async function handleConfirmSubscription() {
         <template #header>
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ modalPhase === 'input' ? 'Nova Poupança' : 'Plano Recomendado' }}
+              {{
+                modalPhase === 'input' ? 'Nova Poupança'
+                : modalPhase === 'recommendation' ? 'Plano Recomendado'
+                : modalPhase === 'terms' ? 'Confirmação de Taxa'
+                : 'Ativar Poupança'
+              }}
             </h2>
             <UButton
               icon="i-lucide-x"
@@ -250,8 +298,22 @@ async function handleConfirmSubscription() {
           </div>
         </template>
 
+        <!-- Loading: fetching activation payment for existing subscription -->
+        <div
+          v-if="isLoadingActivation"
+          class="flex flex-col items-center justify-center py-12 gap-3"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-primary-500"
+          />
+          <p class="text-sm text-gray-500">
+            Gerando código de pagamento...
+          </p>
+        </div>
+
         <UForm
-          v-if="modalPhase === 'input'"
+          v-else-if="modalPhase === 'input'"
           :state="form"
           :validate="validateForm"
           class="space-y-4"
@@ -335,7 +397,7 @@ async function handleConfirmSubscription() {
         </UForm>
 
         <div
-          v-if="modalPhase === 'recommendation' && recommendation"
+          v-else-if="modalPhase === 'recommendation' && recommendation"
           class="space-y-4"
         >
           <div class="bg-primary-50 dark:bg-primary-950 rounded-lg p-4">
@@ -398,7 +460,7 @@ async function handleConfirmSubscription() {
               <span>{{ formatCurrency(costBreakdown.insurance_cost_cents) }}</span>
             </div>
             <div class="flex justify-between text-sm">
-              <span class="text-gray-500">Fundo Garantidor</span>
+              <span class="text-gray-500">Fundo de proteção</span>
               <span>{{ formatCurrency(costBreakdown.guarantee_fund_cost_cents) }}</span>
             </div>
             <hr class="my-2">
@@ -431,13 +493,163 @@ async function handleConfirmSubscription() {
             </UButton>
             <UButton
               block
-              :loading="isCreating"
               :disabled="adjusting || !!limitWarning"
-              @click="handleConfirmSubscription"
+              @click="modalPhase = 'terms'"
             >
-              Confirmar Assinatura
+              Revisar taxa de ativação
             </UButton>
           </div>
+        </div>
+
+        <!-- Phase 3: Terms acknowledgement -->
+        <div
+          v-else-if="modalPhase === 'terms'"
+          class="space-y-4"
+        >
+          <!-- What the fee covers -->
+          <div class="space-y-2">
+            <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+              Antes de continuar, leia com atenção:
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Para ativar sua poupança, é cobrada uma <strong>taxa única de ativação</strong> via Pix. Ela cobre:
+            </p>
+            <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1 ml-4 list-disc">
+              <li>Taxa administrativa do plano</li>
+              <li>Seguro do primeiro mês</li>
+              <li>Taxa de transação Pix (0,99%)</li>
+            </ul>
+          </div>
+
+          <!-- Non-refundable notice -->
+          <div class="flex items-start gap-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+            <UIcon
+              name="i-lucide-alert-triangle"
+              class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"
+            />
+            <div class="space-y-1">
+              <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                Este valor não é reembolsável
+              </p>
+              <p class="text-xs text-amber-700 dark:text-amber-400">
+                Após a confirmação do pagamento, a taxa de ativação não poderá ser estornada sob nenhuma circunstância.
+              </p>
+            </div>
+          </div>
+
+          <!-- Fundo de proteção notice -->
+          <div class="flex items-start gap-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <UIcon
+              name="i-lucide-shield-check"
+              class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0"
+            />
+            <p class="text-xs text-blue-700 dark:text-blue-300">
+              O pagamento garante sua entrada no <strong>fundo de proteção</strong>, uma reserva destinada a proteger o seu investimento e cobrir imprevistos durante o período de poupança.
+            </p>
+          </div>
+
+          <!-- Checkbox acknowledgement -->
+          <label class="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              v-model="termsAccepted"
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
+            >
+            <span class="text-sm text-gray-700 dark:text-gray-300">
+              Estou ciente que a taxa de ativação <strong>não é reembolsável</strong> e concordo em prosseguir com o pagamento.
+            </span>
+          </label>
+
+          <div class="flex gap-2">
+            <UButton
+              variant="outline"
+              block
+              @click="modalPhase = 'recommendation'"
+            >
+              Voltar
+            </UButton>
+            <UButton
+              block
+              :loading="isCreating"
+              :disabled="!termsAccepted"
+              @click="handleConfirmSubscription"
+            >
+              Gerar QR Code
+            </UButton>
+          </div>
+        </div>
+
+        <!-- Phase 4: Activation payment (QR code) -->
+        <div
+          v-else-if="modalPhase === 'activation-payment' && activationPayment"
+          class="space-y-4"
+        >
+          <!-- Fee breakdown -->
+          <div class="border rounded-lg p-4 space-y-2">
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Taxa de ativação
+            </h4>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Taxa administrativa</span>
+              <span>{{ formatCurrency(activationPayment.admin_tax_cents) }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Seguro</span>
+              <span>{{ formatCurrency(activationPayment.insurance_cents) }}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-500">Taxa Pix (0,99%)</span>
+              <span>{{ formatCurrency(activationPayment.pix_transaction_fee_cents) }}</span>
+            </div>
+            <hr class="my-2">
+            <div class="flex justify-between text-sm font-bold">
+              <span>Total</span>
+              <span class="text-primary-600 dark:text-primary-400">
+                {{ formatCurrency(activationPayment.total_amount_cents) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- PIX QR code -->
+          <div
+            v-if="activationPayment.pix_qr_code_data"
+            class="flex flex-col items-center gap-3 py-2"
+          >
+            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Escaneie o QR Code para pagar
+            </p>
+            <div class="bg-white rounded-lg p-3 border">
+              <img
+                :src="`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activationPayment.pix_qr_code_data)}`"
+                alt="QR Code Pix"
+                width="180"
+                height="180"
+              >
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Válido por {{ activationPayment.expiration_minutes }} minutos
+            </p>
+            <UButton
+              variant="outline"
+              size="sm"
+              icon="i-lucide-copy"
+              @click="() => navigator.clipboard.writeText(activationPayment!.pix_qr_code_data!)"
+            >
+              Copiar código Pix
+            </UButton>
+          </div>
+
+          <p class="text-xs text-center text-gray-500 dark:text-gray-400">
+            Após o pagamento ser confirmado, sua poupança será ativada automaticamente.
+          </p>
+
+          <UButton
+            block
+            variant="outline"
+            @click="handleActivationPaymentDone"
+          >
+            Fechar e verificar depois
+          </UButton>
         </div>
       </UCard>
     </template>

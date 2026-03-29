@@ -27,7 +27,7 @@ const { formatCurrency } = useCurrency()
           <UIcon name="i-lucide-shield-check" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
         </div>
         <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Fundo Garantidor</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Fundo de proteção</p>
           <p class="text-xl font-semibold text-gray-900 dark:text-white">
             {{ formatCurrency(summary.fundoGarantidorCents) }}
           </p>

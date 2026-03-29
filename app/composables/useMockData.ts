@@ -139,7 +139,7 @@ O Plano Geral oferece uma opção flexível de investimento com rendimentos base
 
 - Flexibilidade de valores
 - Rendimentos mensais
-- Proteção do Fundo Garantidor`,
+- Proteção do Fundo de proteção`,
       minValueCents: 100000, // R$ 1.000,00
       maxValueCents: 10000000, // R$ 100.000,00
       minDurationMonths: 6,

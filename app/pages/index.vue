@@ -8,7 +8,7 @@ const features = [
   {
     icon: 'i-lucide-shield-check',
     title: 'Segurança Garantida',
-    description: 'Seus investimentos protegidos pelo Fundo Garantidor e práticas de segurança rigorosas.'
+    description: 'Seus investimentos protegidos pelo Fundo de proteção e práticas de segurança rigorosas.'
   },
   {
     icon: 'i-lucide-trending-up',

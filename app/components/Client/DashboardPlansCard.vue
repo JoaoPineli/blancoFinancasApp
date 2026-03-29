@@ -106,11 +106,19 @@ const { statusLabel, statusColor } = useSubscriptionHelpers()
             </UBadge>
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400">
-            {{ sub.depositsPaid }}/{{ sub.depositCount }} parcelas · vence {{ formatDate(sub.nextDueDate + 'T00:00:00') }}
+            <template v-if="sub.status === 'inactive'">
+              Aguardando ativação
+            </template>
+            <template v-else>
+              {{ sub.depositsPaid }}/{{ sub.depositCount }} parcelas · vence {{ sub.nextDueDate ? formatDate(sub.nextDueDate + 'T00:00:00') : '—' }}
+            </template>
           </p>
         </NuxtLink>
 
-        <NuxtLink :to="`/client/finance?tab=pay&subscription=${sub.id}`">
+        <NuxtLink
+          v-if="sub.status !== 'inactive'"
+          :to="`/client/finance?tab=pay&subscription=${sub.id}`"
+        >
           <UButton
             size="xs"
             variant="soft"

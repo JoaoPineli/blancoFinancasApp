@@ -208,7 +208,7 @@ onMounted(() => {
                   </UBadge>
                   <p
                     v-if="w.rejectionReason"
-                    class="text-xs text-red-500 dark:text-red-400 max-w-[180px] truncate"
+                    class="text-xs text-red-500 dark:text-red-400 max-w-45 truncate"
                     :title="w.rejectionReason"
                   >
                     {{ w.rejectionReason }}

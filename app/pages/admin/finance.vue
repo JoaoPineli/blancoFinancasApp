@@ -58,7 +58,7 @@ const { adminFinanceSummary, cashFlow } = useMockData()
       description="A conciliação bancária é realizada automaticamente. Verifique o relatório de conciliação para detalhes."
     />
 
-    <!-- Fundo Garantidor Details -->
+    <!-- Fundo de proteção Details -->
     <UCard>
       <template #header>
         <div class="flex items-center gap-2">
@@ -67,14 +67,14 @@ const { adminFinanceSummary, cashFlow } = useMockData()
             class="w-5 h-5 text-primary-500"
           />
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Fundo Garantidor
+            Fundo de proteção
           </h2>
         </div>
       </template>
 
       <div class="space-y-4">
         <p class="text-gray-600 dark:text-gray-400">
-          O Fundo Garantidor é uma reserva financeira destinada a proteger os investidores
+          O Fundo de proteção é uma reserva financeira destinada a proteger os investidores
           em caso de eventualidades. Os valores são atualizados automaticamente pelo sistema.
         </p>
 

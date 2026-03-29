@@ -19,7 +19,7 @@ import type { Subscription } from '~/composables/useSubscriptionsApi'
 import { FEE_ATTENTION_THRESHOLD_PERCENT } from '~/composables/useSubscriptionHelpers'
 
 export interface SubscriptionAction {
-  type: 'rename' | 'terminate' | 'history' | 'pay' | 'withdraw'
+  type: 'rename' | 'terminate' | 'history' | 'pay' | 'withdraw' | 'activate'
   subscriptionId: string
 }
 
@@ -58,6 +58,7 @@ const dueDateLabel = computed(() => daysUntilLabel(sub.value.nextDueDate))
 
 const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
 const isEnded = computed(() => sub.value.status === 'cancelled' || sub.value.status === 'completed')
+const isInactive = computed(() => sub.value.status === 'inactive')
 
 /** Kebab menu items — grouped for UDropdownMenu */
 const menuItems = computed(() => {
@@ -69,6 +70,31 @@ const menuItems = computed(() => {
         onSelect: () => emit('action', { type: 'history', subscriptionId: sub.value.id })
       }
     ]]
+  }
+
+  if (isInactive.value) {
+    return [
+      [
+        {
+          label: 'Alterar nome',
+          icon: 'i-lucide-pencil',
+          onSelect: () => emit('action', { type: 'rename', subscriptionId: sub.value.id })
+        },
+        {
+          label: 'Ativar plano',
+          icon: 'i-lucide-zap',
+          onSelect: () => emit('action', { type: 'activate', subscriptionId: sub.value.id })
+        }
+      ],
+      [
+        {
+          label: 'Cancelar plano',
+          icon: 'i-lucide-x-circle',
+          color: 'error' as const,
+          onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
+        }
+      ]
+    ]
   }
 
   return [
@@ -109,7 +135,7 @@ const menuItems = computed(() => {
 /** Fee tooltip text explaining the calculation basis */
 const feeTooltipText = computed(() => {
   const threshold = (FEE_ATTENTION_THRESHOLD_PERCENT * 100).toFixed(0)
-  return `Inclui taxa administrativa, seguro e fundo garantidor. Taxas acima de ${threshold}% do objetivo são destacadas.`
+  return `Inclui taxa administrativa, seguro e fundo de proteção. Taxas acima de ${threshold}% do objetivo são destacadas.`
 })
 </script>
 
@@ -163,7 +189,15 @@ const feeTooltipText = computed(() => {
       </div>
 
       <div>
-        <div v-if="sub.status != 'cancelled'">
+        <div v-if="sub.status === 'inactive'">
+          <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
+            Próximo vencimento
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+            Aguardando ativação
+          </p>
+        </div>
+        <div v-else-if="sub.status !== 'cancelled' && sub.nextDueDate">
           <p class="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">
             Próximo vencimento
           </p>

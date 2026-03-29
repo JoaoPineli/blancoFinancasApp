@@ -32,6 +32,7 @@ export function useSubscriptionHelpers() {
    */
   function statusLabel(status: string): string {
     const labels: Record<string, string> = {
+      inactive: 'Inativa',
       active: 'Ativa',
       paused: 'Pausada',
       completed: 'Concluída',
@@ -43,8 +44,9 @@ export function useSubscriptionHelpers() {
   /**
    * Badge color for subscription status.
    */
-  function statusColor(status: string): 'success' | 'warning' | 'neutral' | 'error' {
-    const colors: Record<string, 'success' | 'warning' | 'neutral' | 'error'> = {
+  function statusColor(status: string): 'success' | 'warning' | 'neutral' | 'error' | 'info' {
+    const colors: Record<string, 'success' | 'warning' | 'neutral' | 'error' | 'info'> = {
+      inactive: 'info',
       active: 'success',
       paused: 'warning',
       completed: 'neutral',

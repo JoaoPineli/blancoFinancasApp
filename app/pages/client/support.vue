@@ -30,8 +30,8 @@ const faqItems: FaqItem[] = [
     Text: 'Acesse a página Financeiro, selecione a aba Saque, preencha os dados bancários e o valor desejado. A solicitação será analisada e processada em até 3 dias úteis após aprovação.'
   },
   {
-    Title: 'O que é o Fundo Garantidor?',
-    Text: 'O Fundo Garantidor é uma reserva equivalente a um percentual de cada depósito, destinada a proteger o seu investimento. Ele é retido automaticamente e pode ser consultado no seu extrato.'
+    Title: 'O que é o Fundo de proteção?',
+    Text: 'O Fundo de proteção é uma reserva equivalente a um percentual de cada depósito, destinada a proteger o seu investimento. Ele é retido automaticamente e pode ser consultado no seu extrato.'
   },
   {
     Title: 'Posso ter mais de um plano ativo?',

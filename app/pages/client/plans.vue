@@ -43,8 +43,10 @@ function toggleExpand(id: string) {
 
 // --- Modals ---
 const showModal = ref(false)
+const activateSubscriptionId = ref<string | undefined>(undefined)
 
 function openModal() {
+  activateSubscriptionId.value = undefined
   showModal.value = true
 }
 
@@ -74,6 +76,11 @@ function handleSubscriptionCreated(data: { planTitle: string, name: string }) {
     color: 'success'
   })
   fetchSubscriptions()
+}
+
+function handleModalClose() {
+  activateSubscriptionId.value = undefined
+  showModal.value = false
 }
 
 // --- Subscription actions ---
@@ -109,6 +116,12 @@ function handleAction(action: SubscriptionAction) {
       path: '/client/finance',
       query: { tab: 'history', subscription: action.subscriptionId }
     })
+    return
+  }
+
+  if (action.type === 'activate') {
+    activateSubscriptionId.value = action.subscriptionId
+    showModal.value = true
     return
   }
 
@@ -358,8 +371,9 @@ onMounted(() => {
     <!-- New subscription modal -->
     <ClientNewSubscriptionModal
       v-model:open="showModal"
+      :activate-subscription-id="activateSubscriptionId"
       @created="handleSubscriptionCreated"
-      @close="showModal = false"
+      @close="handleModalClose"
     />
 
     <!-- Rename modal -->
