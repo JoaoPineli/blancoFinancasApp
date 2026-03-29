@@ -131,7 +131,7 @@ Use the centralized API composable with a configured `baseURL` (from runtime con
 
 ## Mocking Policy
 
-When backend endpoints are not ready, a mock composable `composables/useMockData.ts` may be created to simulate API responses. Mocks must simulate API response shapes accurately and return static placeholder values. Mocks must **not** implement financial formulas or approximate yields. Placeholders must be clearly labeled.
+When backend endpoints are not ready, a mock composable may be created to simulate API responses. Mocks must simulate API response shapes accurately and return static placeholder values. Mocks must **not** implement financial formulas or approximate yields. Placeholders must be clearly labeled.
 
 ---
 

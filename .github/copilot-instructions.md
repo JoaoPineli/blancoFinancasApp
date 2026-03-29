@@ -90,7 +90,7 @@
 
 ## Notes for AI agents
 
-- **Mocking:** If backend endpoints are not ready, create a mock composable `composables/useMockData.ts` to simulate API responses for the Dashboard and Tables, so UI development isn't blocked.
+- **Mocking:** If backend endpoints are not ready, a mock composable may be created to simulate API responses for the Dashboard and Tables (static placeholders only; never implement financial formulas).
 - **Security:** Never store plain-text passwords or sensitive tokens in `localStorage`. Use `useCookie` for session tokens with appropriate security flags.
 - **Validation:** Enforce frontend validation for CPF and Currency inputs before sending to the API.
 - Follow the ARCHITECTURE_AND_GUARDRAILS.md file to the dot no mater what

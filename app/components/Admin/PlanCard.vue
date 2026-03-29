@@ -7,7 +7,7 @@
  * - No financial calculations performed here
  */
 
-import type { AdminPlan } from '~/composables/useMockData'
+import type { AdminPlan } from '~/types/admin-plan'
 
 const props = defineProps<{
   plan: AdminPlan

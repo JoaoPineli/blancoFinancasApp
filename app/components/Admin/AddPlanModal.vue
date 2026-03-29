@@ -14,7 +14,7 @@
  */
 
 import type { Form, FormError, StepperItem } from '@nuxt/ui'
-import type { AdminPlan } from '~/composables/useMockData'
+import type { AdminPlan } from '~/types/admin-plan'
 
 const props = defineProps<{
   plan?: AdminPlan | null

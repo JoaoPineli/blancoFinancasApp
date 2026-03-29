@@ -7,7 +7,7 @@
  * - Data comes from backend as the single source of truth
  */
 
-import type { AdminPlan } from './useMockData'
+import type { AdminPlan } from '~/types/admin-plan'
 
 /**
  * API response types matching backend schemas

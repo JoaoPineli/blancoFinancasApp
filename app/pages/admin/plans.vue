@@ -8,7 +8,7 @@
  * - No business logic or financial calculations here
  */
 
-import type { AdminPlan } from '~/composables/useMockData'
+import type { AdminPlan } from '~/types/admin-plan'
 import type { PlanFormData } from '~/components/Admin/AddPlanModal.vue'
 
 definePageMeta({

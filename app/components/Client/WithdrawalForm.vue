@@ -86,15 +86,24 @@ function formatAmountInput(event: Event) {
   <UCard>
     <template #header>
       <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-banknote" class="w-5 h-5 text-primary-500" />
+        <UIcon
+          name="i-lucide-banknote"
+          class="w-5 h-5 text-primary-500"
+        />
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
           Solicitar Saque
         </h3>
       </div>
     </template>
 
-    <form class="space-y-4" @submit.prevent="handleSubmit">
-      <UFormField label="Valor do saque" required>
+    <form
+      class="space-y-4"
+      @submit.prevent="handleSubmit"
+    >
+      <UFormField
+        label="Valor do saque"
+        required
+      >
         <UInput
           v-model="form.amount"
           placeholder="0,00"
@@ -103,7 +112,10 @@ function formatAmountInput(event: Event) {
         />
       </UFormField>
 
-      <UFormField label="Banco" required>
+      <UFormField
+        label="Banco"
+        required
+      >
         <USelect
           v-model="form.bankCode"
           :items="bankOptions"
@@ -112,7 +124,10 @@ function formatAmountInput(event: Event) {
       </UFormField>
 
       <div class="grid grid-cols-2 gap-4">
-        <UFormField label="Agência" required>
+        <UFormField
+          label="Agência"
+          required
+        >
           <UInput
             v-model="form.agency"
             placeholder="0000"
@@ -120,7 +135,10 @@ function formatAmountInput(event: Event) {
           />
         </UFormField>
 
-        <UFormField label="Conta" required>
+        <UFormField
+          label="Conta"
+          required
+        >
           <UInput
             v-model="form.accountNumber"
             placeholder="00000-0"
@@ -128,7 +146,10 @@ function formatAmountInput(event: Event) {
         </UFormField>
       </div>
 
-      <UFormField label="Tipo de conta" required>
+      <UFormField
+        label="Tipo de conta"
+        required
+      >
         <USelect
           v-model="form.accountType"
           :items="accountTypeOptions"
