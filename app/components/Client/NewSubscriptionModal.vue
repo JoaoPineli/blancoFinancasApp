@@ -273,6 +273,12 @@ async function handleConfirmSubscription() {
 function handleActivationPaymentDone() {
   open.value = false
 }
+
+function handleCopyPixCode() {
+  if (activationPayment.value?.pix_qr_code_data) {
+    navigator.clipboard.writeText(activationPayment.value.pix_qr_code_data)
+  }
+}
 </script>
 
 <template>
@@ -285,8 +291,8 @@ function handleActivationPaymentDone() {
               {{
                 modalPhase === 'input' ? 'Nova Poupança'
                 : modalPhase === 'recommendation' ? 'Plano Recomendado'
-                : modalPhase === 'terms' ? 'Confirmação de Taxa'
-                : 'Ativar Poupança'
+                  : modalPhase === 'terms' ? 'Confirmação de Taxa'
+                    : 'Ativar Poupança'
               }}
             </h2>
             <UButton
@@ -373,10 +379,9 @@ function handleActivationPaymentDone() {
             name="depositDayOfMonth"
             label="Dia do depósito mensal"
           >
-            <USelectMenu
+            <USelect
               v-model="form.depositDayOfMonth"
               :items="depositDayOptions"
-              value-key="value"
             />
           </UFormField>
 
@@ -633,7 +638,7 @@ function handleActivationPaymentDone() {
               variant="outline"
               size="sm"
               icon="i-lucide-copy"
-              @click="() => navigator.clipboard.writeText(activationPayment!.pix_qr_code_data!)"
+              @click="handleCopyPixCode"
             >
               Copiar código Pix
             </UButton>

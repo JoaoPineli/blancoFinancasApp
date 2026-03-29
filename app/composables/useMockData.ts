@@ -81,13 +81,6 @@ export interface CashFlowEntry {
   category: string
 }
 
-export interface AdminFinanceSummary {
-  fundoGarantidorCents: number
-  totalInflowCents: number
-  totalOutflowCents: number
-  netBalanceCents: number
-}
-
 export interface ChatMessage {
   id: string
   senderId: string
@@ -329,13 +322,6 @@ Condições especiais para agricultores com valores mínimos reduzidos.
     }
   ]
 
-  const adminFinanceSummary: AdminFinanceSummary = {
-    fundoGarantidorCents: 5000000, // R$ 50.000,00 (from backend)
-    totalInflowCents: 15000000, // R$ 150.000,00 (from backend)
-    totalOutflowCents: 4000000, // R$ 40.000,00 (from backend)
-    netBalanceCents: 11000000 // R$ 110.000,00 (from backend)
-  }
-
   const chatMessages: ChatMessage[] = [
     {
       id: 'msg-1',
@@ -374,7 +360,6 @@ Condições especiais para agricultores com valores mínimos reduzidos.
     withdrawals,
     clients,
     cashFlow,
-    adminFinanceSummary,
     chatMessages,
     mockPixQrCode,
 

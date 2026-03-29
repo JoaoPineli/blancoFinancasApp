@@ -33,7 +33,6 @@ const selectedClient = computed(
 const selectedClientId = ref<string | null>(null)
 
 const statusFilterOptions = [
-  { label: 'Todos', value: '' },
   { label: 'Ativo', value: 'active' },
   { label: 'Inativo', value: 'inactive' },
   { label: 'Inadimplente', value: 'defaulting' },
@@ -189,12 +188,21 @@ onMounted(loadClients)
       />
       <USelect
         v-model="statusFilter"
-        :options="statusFilterOptions"
-        option-attribute="label"
-        value-attribute="value"
+        :items="statusFilterOptions"
         class="sm:w-48"
         @update:model-value="onFilterChange"
       />
+      <UButton
+        color="error"
+        variant="outline"
+        size="xs"
+        @click="() => { searchQuery = ''; statusFilter = ''; loadClients() }"
+      >
+        <UIcon
+          name="i-lucide-x"
+          class="w-4 h-4"
+        />
+      </UButton>
     </div>
 
     <!-- Client table -->

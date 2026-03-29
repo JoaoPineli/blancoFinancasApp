@@ -23,7 +23,6 @@ const rejectModalOpen = ref(false)
 const targetWithdrawal = ref<AdminWithdrawal | null>(null)
 
 const statusOptions = [
-  { label: 'Todos', value: '' },
   { label: 'Pendente', value: 'pending' },
   { label: 'Confirmado', value: 'confirmed' },
   { label: 'Cancelado', value: 'cancelled' }
@@ -99,13 +98,25 @@ onMounted(() => {
       </div>
 
       <!-- Status filter -->
-      <USelectMenu
-        v-model="statusFilter"
-        :items="statusOptions"
-        value-key="value"
-        placeholder="Todos os status"
-        class="w-40"
-      />
+      <div class="flex items-center gap-2">
+        <USelect
+          v-model="statusFilter"
+          :items="statusOptions"
+          placeholder="Todos os status"
+          class="w-40"
+        />
+        <UButton
+          color="error"
+          variant="outline"
+          size="sm"
+          @click="statusFilter = ''"
+        >
+          <UIcon
+            name="i-lucide-x"
+            class="w-4 h-4"
+          />
+        </UButton>
+      </div>
     </div>
 
     <!-- Loading skeleton -->

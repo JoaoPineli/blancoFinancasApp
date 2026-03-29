@@ -10,7 +10,7 @@ definePageMeta({
 })
 
 const toast = useToast()
-const isExporting = ref(false)
+const { isLoading, downloadReport } = useAdminReportsApi()
 
 const reportTypes = [
   {
@@ -43,26 +43,33 @@ const reportTypes = [
   }
 ]
 
-async function handleExport(reportId: string, format: string) {
-  isExporting.value = true
-
-  // Mock: Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 2000))
-
-  toast.add({
-    title: 'Exportação iniciada',
-    description: `O relatório será baixado em formato ${format}. (Mock)`,
-    color: 'success'
-  })
-
-  isExporting.value = false
-}
-
 // Date range for reports
 const dateRange = reactive({
   start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
   end: new Date().toISOString().split('T')[0]
 })
+
+async function handleExport(reportId: string, format: string) {
+  if (!dateRange.start || !dateRange.end) {
+    toast.add({
+      title: 'Período inválido',
+      description: 'Preencha a data inicial e a data final antes de exportar.',
+      color: 'error'
+    })
+    return
+  }
+
+  if (dateRange.start > dateRange.end) {
+    toast.add({
+      title: 'Período inválido',
+      description: 'A data inicial não pode ser posterior à data final.',
+      color: 'error'
+    })
+    return
+  }
+
+  await downloadReport(reportId, format, dateRange.start, dateRange.end)
+}
 </script>
 
 <template>
@@ -85,13 +92,19 @@ const dateRange = reactive({
       </template>
 
       <div class="flex flex-col sm:flex-row gap-4">
-        <UFormField label="Data Inicial" class="flex-1">
+        <UFormField
+          label="Data Inicial"
+          class="flex-1"
+        >
           <UInput
             v-model="dateRange.start"
             type="date"
           />
         </UFormField>
-        <UFormField label="Data Final" class="flex-1">
+        <UFormField
+          label="Data Final"
+          class="flex-1"
+        >
           <UInput
             v-model="dateRange.end"
             type="date"
@@ -102,10 +115,16 @@ const dateRange = reactive({
 
     <!-- Report Types -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <UCard v-for="report in reportTypes" :key="report.id">
+      <UCard
+        v-for="report in reportTypes"
+        :key="report.id"
+      >
         <div class="flex items-start gap-4">
           <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-900/30">
-            <UIcon :name="report.icon" class="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            <UIcon
+              :name="report.icon"
+              class="w-6 h-6 text-primary-600 dark:text-primary-400"
+            />
           </div>
           <div class="flex-1">
             <h3 class="font-semibold text-gray-900 dark:text-white">
@@ -123,58 +142,17 @@ const dateRange = reactive({
             :key="format"
             size="sm"
             variant="soft"
-            :loading="isExporting"
+            :loading="isLoading(report.id, format)"
             @click="handleExport(report.id, format)"
           >
-            <UIcon name="i-lucide-download" class="w-4 h-4 mr-1" />
+            <UIcon
+              name="i-lucide-download"
+              class="w-4 h-4 mr-1"
+            />
             {{ format }}
           </UButton>
         </div>
       </UCard>
     </div>
-
-    <!-- Export History -->
-    <UCard>
-      <template #header>
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Últimas Exportações
-        </h2>
-      </template>
-
-      <div class="space-y-3">
-        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-file-spreadsheet" class="w-5 h-5 text-green-500" />
-            <div>
-              <p class="font-medium text-gray-900 dark:text-white">Relatório de Clientes.xlsx</p>
-              <p class="text-xs text-gray-500">14/01/2026 às 10:30</p>
-            </div>
-          </div>
-          <UBadge color="success" variant="subtle">Concluído</UBadge>
-        </div>
-
-        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-file-spreadsheet" class="w-5 h-5 text-green-500" />
-            <div>
-              <p class="font-medium text-gray-900 dark:text-white">Fluxo de Caixa - Janeiro.xlsx</p>
-              <p class="text-xs text-gray-500">13/01/2026 às 15:45</p>
-            </div>
-          </div>
-          <UBadge color="success" variant="subtle">Concluído</UBadge>
-        </div>
-
-        <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-file-text" class="w-5 h-5 text-blue-500" />
-            <div>
-              <p class="font-medium text-gray-900 dark:text-white">Relatório de Rendimentos.pdf</p>
-              <p class="text-xs text-gray-500">10/01/2026 às 09:15</p>
-            </div>
-          </div>
-          <UBadge color="success" variant="subtle">Concluído</UBadge>
-        </div>
-      </div>
-    </UCard>
   </div>
 </template>

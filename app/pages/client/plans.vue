@@ -211,11 +211,10 @@ onMounted(() => {
           for="sort-select"
           class="text-sm text-gray-500 dark:text-gray-400"
         >Ordenar:</label>
-        <USelectMenu
+        <USelect
           id="sort-select"
           v-model="sortBy"
           :items="SORT_OPTIONS"
-          value-key="value"
           class="w-48"
         />
       </div>

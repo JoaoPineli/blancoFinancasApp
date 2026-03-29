@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:open', val: boolean): void
-  (e: 'confirm', subscriptionId: string, pixData: { ownerName: string; pixKeyType: string; pixKey: string }): void
+  (e: 'confirm', subscriptionId: string, pixData: { ownerName: string, pixKeyType: string, pixKey: string }): void
 }>()
 
 const { formatCurrency } = useCurrency()
@@ -46,9 +46,9 @@ const pixKeyPlaceholder = computed(() => {
 })
 
 const isFormValid = computed(() =>
-  ownerName.value.trim().length >= 3 &&
-  pixKeyType.value !== '' &&
-  pixKey.value.trim().length >= 5
+  ownerName.value.trim().length >= 3
+  && pixKeyType.value !== ''
+  && pixKey.value.trim().length >= 5
 )
 
 watch(() => props.open, (val) => {
@@ -135,7 +135,10 @@ function handleConfirm() {
 
         <!-- Pix form -->
         <div class="space-y-3">
-          <UFormField label="Nome completo do titular" required>
+          <UFormField
+            label="Nome completo do titular"
+            required
+          >
             <UInput
               v-model="ownerName"
               placeholder="Nome como consta na conta bancária"
@@ -143,17 +146,22 @@ function handleConfirm() {
             />
           </UFormField>
 
-          <UFormField label="Tipo de chave Pix" required>
-            <USelectMenu
+          <UFormField
+            label="Tipo de chave Pix"
+            required
+          >
+            <USelect
               v-model="pixKeyType"
               :items="pixKeyTypes"
-              value-key="value"
               placeholder="Selecione o tipo"
               class="w-full"
             />
           </UFormField>
 
-          <UFormField label="Chave Pix" required>
+          <UFormField
+            label="Chave Pix"
+            required
+          >
             <UInput
               v-model="pixKey"
               :placeholder="pixKeyPlaceholder"

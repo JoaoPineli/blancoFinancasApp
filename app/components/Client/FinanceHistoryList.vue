@@ -223,9 +223,9 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'neutral
             {{ statusLabel(event.status) }}
           </UBadge>
           <UIcon
+            v-if="isViewable(event)"
             name="i-lucide-chevron-right"
             class="w-4 h-4 text-gray-400 dark:text-gray-500"
-            :class="{ 'invisible': !isViewable(event) }"
           />
         </div>
       </div>

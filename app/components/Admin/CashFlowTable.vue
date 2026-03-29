@@ -57,11 +57,15 @@ const columns = [
     </template>
 
     <template #category-cell="{ row }">
-      <UBadge
-        color="neutral"
-        variant="subtle">
-        {{ row.original.category }}
-      </UBadge>
+      <div class="flex justify-center">
+        <UBadge
+          color="neutral"
+          variant="subtle"
+          class="w-full justify-center"
+        >
+          {{ row.original.category }}
+        </UBadge>
+      </div>
     </template>
   </UTable>
 </template>
