@@ -28,6 +28,11 @@ const clientNavItems = [
 
 const adminNavItems = [
   {
+    label: 'Dashboard',
+    icon: 'i-lucide-layout-dashboard',
+    to: '/admin/dashboard'
+  },
+  {
     label: 'Clientes',
     icon: 'i-lucide-users',
     to: '/admin/clients'

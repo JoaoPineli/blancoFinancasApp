@@ -34,10 +34,16 @@ export interface PlanListApiResponse {
   total: number
 }
 
+interface PlanSummaryApiResponse {
+  id: string
+  title: string
+  active: boolean
+}
+
 export interface PlanSummary {
   id: string
   title: string
-  status: 'active' | 'inactive'
+  active: boolean
 }
 
 export interface CreatePlanRequest {
@@ -180,7 +186,7 @@ export function usePlansApi() {
     isLoading.value = true
     error.value = null
 
-    const response = await api.get<PlanSummary[]>('/v1/admin/plans/summary')
+    const response = await api.get<PlanSummaryApiResponse[]>('/v1/admin/plans/summary')
 
     if (response.error) {
       error.value = response.error.message
@@ -190,7 +196,11 @@ export function usePlansApi() {
         color: 'error'
       })
     } else if (response.data) {
-      planSummaries.value = response.data
+      planSummaries.value = response.data.map(r => ({
+        id: r.id,
+        title: r.title,
+        active: r.active
+      }))
     }
 
     isLoading.value = false
