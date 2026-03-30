@@ -38,11 +38,6 @@ const adminNavItems = [
     to: '/admin/finance'
   },
   {
-    label: 'Relatórios',
-    icon: 'i-lucide-file-spreadsheet',
-    to: '/admin/reports'
-  },
-  {
     label: 'Planos',
     icon: 'i-lucide-clipboard-list',
     to: '/admin/plans'
@@ -51,6 +46,11 @@ const adminNavItems = [
     label: 'Saques',
     icon: 'i-lucide-arrow-up-right',
     to: '/admin/withdrawals'
+  },
+  {
+    label: 'Relatórios',
+    icon: 'i-lucide-file-spreadsheet',
+    to: '/admin/reports'
   }
 ]
 

@@ -44,13 +44,18 @@ const reportTypes = [
 ]
 
 // Date range for reports
-const dateRange = reactive({
-  start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
-  end: new Date().toISOString().split('T')[0]
-})
+const today = new Date()
+const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate())
+
+function toIsoDate(d: Date): string {
+  return d.toISOString().split('T')[0] || ''
+}
+
+const dateStart = ref<string>(toIsoDate(lastMonth))
+const dateEnd = ref<string>(toIsoDate(today))
 
 async function handleExport(reportId: string, format: string) {
-  if (!dateRange.start || !dateRange.end) {
+  if (!dateStart.value || !dateEnd.value) {
     toast.add({
       title: 'Período inválido',
       description: 'Preencha a data inicial e a data final antes de exportar.',
@@ -59,7 +64,7 @@ async function handleExport(reportId: string, format: string) {
     return
   }
 
-  if (dateRange.start > dateRange.end) {
+  if (dateStart.value > dateEnd.value) {
     toast.add({
       title: 'Período inválido',
       description: 'A data inicial não pode ser posterior à data final.',
@@ -68,7 +73,7 @@ async function handleExport(reportId: string, format: string) {
     return
   }
 
-  await downloadReport(reportId, format, dateRange.start, dateRange.end)
+  await downloadReport(reportId, format, dateStart.value, dateEnd.value)
 }
 </script>
 
@@ -84,34 +89,10 @@ async function handleExport(reportId: string, format: string) {
     </div>
 
     <!-- Date Filter -->
-    <UCard>
-      <template #header>
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Período do Relatório
-        </h2>
-      </template>
-
-      <div class="flex flex-col sm:flex-row gap-4">
-        <UFormField
-          label="Data Inicial"
-          class="flex-1"
-        >
-          <UInput
-            v-model="dateRange.start"
-            type="date"
-          />
-        </UFormField>
-        <UFormField
-          label="Data Final"
-          class="flex-1"
-        >
-          <UInput
-            v-model="dateRange.end"
-            type="date"
-          />
-        </UFormField>
-      </div>
-    </UCard>
+    <AdminSearchFilter
+      v-model:start="dateStart"
+      v-model:end="dateEnd"
+    />
 
     <!-- Report Types -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

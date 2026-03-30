@@ -147,109 +147,42 @@ const summaryForComponent = computed(() => {
         Acompanhe o fluxo de caixa e métricas financeiras.
       </p>
     </div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 space-y-3">
-      <!-- Controls row -->
-      <div class="grid grid-cols-2 md:grid-cols-[1fr_1fr_1fr_1fr_auto_auto] gap-2 items-end">
-        <!-- Data inicial -->
-        <div class="col-span-1">
-          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Data inicial
-          </label>
-          <UInput
-            v-model="draftStart"
-            type="date"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Data final -->
-        <div class="col-span-1">
-          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Data final
-          </label>
-          <UInput
-            v-model="draftEnd"
-            type="date"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Categoria -->
-        <div class="col-span-1">
-          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Categoria
-          </label>
-          <USelect
-            v-model="draftCategory"
-            :items="CATEGORY_OPTIONS"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Tipo -->
-        <div class="col-span-1">
-          <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
-            Tipo
-          </label>
-          <USelect
-            v-model="draftFlowType"
-            :items="FLOW_TYPE_OPTIONS"
-            size="sm"
-            class="w-full"
-          />
-        </div>
-
-        <!-- Action buttons — span full row on mobile -->
-        <div class="col-span-2 md:col-span-1 flex items-end gap-2">
-          <UButton
-            size="sm"
-            :loading="isApplying"
-            class="flex-1 md:flex-none justify-center"
-            @click="applyFilters"
-          >
-            Aplicar
-          </UButton>
-          <UButton
-            size="sm"
-            variant="outline"
-            color="error"
-            class="flex-1 md:flex-none justify-center"
-            @click="clearFilters"
-          >
-            <UIcon
-              name="i-lucide-x"
-              class="w-4 h-4"
-            />
-          </UButton>
-        </div>
-      </div>
-
-      <!-- Active filter chips -->
-      <div
-        v-if="hasActiveFilters"
-        class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-gray-100 dark:border-gray-800"
-      >
-        <span class="text-xs text-gray-400 dark:text-gray-500 mr-1">Filtros ativos:</span>
-        <UBadge
-          v-for="chip in activeChips"
-          :key="chip.key"
-          color="primary"
-          variant="subtle"
+    <AdminSearchFilter
+      v-model:start="draftStart"
+      v-model:end="draftEnd"
+      show-actions
+      :is-applying="isApplying"
+      :active-chips="activeChips"
+      @apply="applyFilters"
+      @clear="clearFilters"
+      @remove-chip="removeChip"
+    >
+      <!-- Categoria -->
+      <div class="min-w-[140px] flex-1">
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          Categoria
+        </label>
+        <USelect
+          v-model="draftCategory"
+          :items="CATEGORY_OPTIONS"
           size="sm"
-          class="cursor-pointer gap-1"
-          @click="removeChip(chip.key)"
-        >
-          {{ chip.label }}
-          <UIcon
-            name="i-lucide-x"
-            class="w-3 h-3"
-          />
-        </UBadge>
+          class="w-full"
+        />
       </div>
-    </div>
+
+      <!-- Tipo -->
+      <div class="min-w-[140px] flex-1">
+        <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+          Tipo
+        </label>
+        <USelect
+          v-model="draftFlowType"
+          :items="FLOW_TYPE_OPTIONS"
+          size="sm"
+          class="w-full"
+        />
+      </div>
+    </AdminSearchFilter>
 
     <!-- Finance Summary cards -->
     <div
