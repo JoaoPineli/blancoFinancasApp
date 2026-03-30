@@ -53,6 +53,7 @@ export interface InstallmentPaymentApiResponse {
   pix_transaction_id: string | null
   expiration_minutes: number
   items: InstallmentPaymentItemApiResponse[]
+  pix_transaction_fee_cents: number
   created_at: string
   updated_at: string
   confirmed_at: string | null
@@ -138,6 +139,7 @@ export interface InstallmentPayment {
   pixTransactionId: string | null
   expirationMinutes: number
   items: InstallmentPaymentItem[]
+  pixTransactionFeeCents: number
   createdAt: string
   updatedAt: string
   confirmedAt: string | null
@@ -218,6 +220,7 @@ function toInstallmentPayment(r: InstallmentPaymentApiResponse): InstallmentPaym
     pixTransactionId: r.pix_transaction_id,
     expirationMinutes: r.expiration_minutes,
     items: r.items.map(toInstallmentPaymentItem),
+    pixTransactionFeeCents: r.pix_transaction_fee_cents ?? 0,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
     confirmedAt: r.confirmed_at
