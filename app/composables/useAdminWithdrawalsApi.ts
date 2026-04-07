@@ -94,7 +94,7 @@ export function useAdminWithdrawalsApi() {
       params
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao carregar saques',
         description: response.error.message,
@@ -114,7 +114,7 @@ export function useAdminWithdrawalsApi() {
       transaction_id: transactionId
     })
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao confirmar saque',
         description: response.error.message,
@@ -141,7 +141,7 @@ export function useAdminWithdrawalsApi() {
       reason
     })
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao recusar saque',
         description: response.error.message,

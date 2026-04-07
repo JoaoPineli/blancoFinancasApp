@@ -47,6 +47,7 @@ export interface ActivationPaymentApiResponse {
   pix_transaction_fee_cents: number
   total_amount_cents: number
   pix_qr_code_data: string | null
+  pix_qr_code_base64: string | null
   pix_transaction_id: string | null
   expiration_minutes: number
   created_at: string
@@ -160,7 +161,7 @@ export function useSubscriptionsApi() {
 
     const response = await api.get<SubscriptionListApiResponse>('/v1/subscriptions')
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao carregar assinaturas',
@@ -197,7 +198,7 @@ export function useSubscriptionsApi() {
         color: 'error'
       })
       return null
-    } else if (response.error) {
+    } else if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao gerar recomendação',
         description: response.error.message,
@@ -261,7 +262,7 @@ export function useSubscriptionsApi() {
       }
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao criar assinatura',
         description: response.error.message,
@@ -292,7 +293,7 @@ export function useSubscriptionsApi() {
       { deposit_day_of_month: depositDayOfMonth }
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao atualizar dia de depósito',
         description: response.error.message,
@@ -324,7 +325,7 @@ export function useSubscriptionsApi() {
       { name }
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao renomear poupança',
         description: response.error.message,
@@ -404,7 +405,7 @@ export function useSubscriptionsApi() {
       {}
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao gerar pagamento de ativação',
         description: response.error.message,

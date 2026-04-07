@@ -50,6 +50,7 @@ export interface InstallmentPaymentApiResponse {
   status: string
   total_amount_cents: number
   pix_qr_code_data: string | null
+  pix_qr_code_base64: string | null
   pix_transaction_id: string | null
   expiration_minutes: number
   items: InstallmentPaymentItemApiResponse[]
@@ -136,6 +137,7 @@ export interface InstallmentPayment {
   status: string
   totalAmountCents: number
   pixQrCodeData: string | null
+  pixQrCodeBase64: string | null
   pixTransactionId: string | null
   expirationMinutes: number
   items: InstallmentPaymentItem[]
@@ -217,6 +219,7 @@ function toInstallmentPayment(r: InstallmentPaymentApiResponse): InstallmentPaym
     status: r.status,
     totalAmountCents: r.total_amount_cents,
     pixQrCodeData: r.pix_qr_code_data,
+    pixQrCodeBase64: r.pix_qr_code_base64 ?? null,
     pixTransactionId: r.pix_transaction_id,
     expirationMinutes: r.expiration_minutes,
     items: r.items.map(toInstallmentPaymentItem),
@@ -288,7 +291,7 @@ export function useFinanceApi() {
       '/v1/finances/payable-installments'
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao carregar parcelas',
@@ -321,7 +324,7 @@ export function useFinanceApi() {
       { subscription_ids: subscriptionIds }
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
 
       // 409 = pending payment already exists — let caller handle UX
@@ -358,7 +361,7 @@ export function useFinanceApi() {
       `/v1/finances/installment-payments/${paymentId}`
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao carregar pagamento',
         description: response.error.message,
@@ -391,7 +394,7 @@ export function useFinanceApi() {
       '/v1/finances/withdrawable-subscriptions'
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao carregar planos',
@@ -414,7 +417,7 @@ export function useFinanceApi() {
    */
   async function requestPlanWithdrawal(
     subscriptionId: string,
-    pixData: { ownerName: string; pixKeyType: string; pixKey: string }
+    pixData: { ownerName: string, pixKeyType: string, pixKey: string }
   ): Promise<PlanWithdrawal | null> {
     isLoading.value = true
     error.value = null
@@ -429,7 +432,7 @@ export function useFinanceApi() {
       }
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao solicitar retirada',
@@ -474,7 +477,7 @@ export function useFinanceApi() {
       { limit, offset }
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao carregar histórico',

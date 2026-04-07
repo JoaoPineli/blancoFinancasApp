@@ -140,7 +140,7 @@ export function useAdminFinanceApi() {
       params
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       summaryError.value = response.error.message
       toast.add({
         title: 'Erro ao carregar resumo financeiro',
@@ -179,7 +179,7 @@ export function useAdminFinanceApi() {
       params
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       cashFlowError.value = response.error.message
       toast.add({
         title: 'Erro ao carregar fluxo de caixa',
@@ -201,7 +201,7 @@ export function useAdminFinanceApi() {
       '/v1/admin/finance/reconciliation/summary'
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao carregar conciliação',
         description: response.error.message,

@@ -100,7 +100,7 @@ export function useAdminClientsApi() {
       `/v1/admin/clients?${qs.toString()}`
     )
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao carregar clientes',
@@ -139,7 +139,7 @@ export function useAdminClientsApi() {
       status: newStatus
     })
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       toast.add({
         title: 'Erro ao alterar status',
         description: response.error.message,

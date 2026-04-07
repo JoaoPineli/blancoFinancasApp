@@ -89,6 +89,18 @@ const activationPayment = ref<ActivationPaymentApiResponse | null>(null)
 const createdSubscriptionId = ref<string | null>(null)
 const isLoadingActivation = ref(false)
 
+const parseUtc = (value: string) =>
+  new Date(value.replace(' ', 'T').replace(/(\.\d{3})\d+$/, '$1') + 'Z')
+
+const pixExpirationDate = computed(() => {
+  const createdAt = activationPayment.value?.created_at
+  const expirationMinutes = activationPayment.value?.expiration_minutes
+  if (!createdAt || expirationMinutes == null) return null
+  const date = parseUtc(createdAt)
+  if (Number.isNaN(date.getTime())) return null
+  return new Date(date.getTime() + expirationMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+})
+
 watch(open, async (isOpen) => {
   if (!isOpen) {
     resetForm()
@@ -625,14 +637,24 @@ function handleCopyPixCode() {
             </p>
             <div class="bg-white rounded-lg p-3 border">
               <img
-                :src="`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activationPayment.pix_qr_code_data)}`"
+                v-if="activationPayment.pix_qr_code_base64"
+                :src="'data:image/png;base64,' + activationPayment.pix_qr_code_base64"
                 alt="QR Code Pix"
                 width="180"
                 height="180"
               >
+              <div
+                v-else
+                class="w-45 h-45 flex items-center justify-center"
+              >
+                <UIcon
+                  name="i-lucide-qr-code"
+                  class="w-24 h-24 text-gray-400"
+                />
+              </div>
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
-              Válido por {{ activationPayment.expiration_minutes }} minutos
+              {{ pixExpirationDate ? 'Válido até ' + pixExpirationDate : 'Erro ao calcular data de expiração' }}
             </p>
             <UButton
               variant="outline"

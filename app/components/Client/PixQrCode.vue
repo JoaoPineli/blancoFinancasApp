@@ -7,6 +7,7 @@
 
 defineProps<{
   pixCode: string
+  pixQrCodeBase64?: string
 }>()
 
 const toast = useToast()
@@ -41,8 +42,17 @@ async function copyToClipboard(text: string) {
     </template>
 
     <div class="flex flex-col items-center gap-4">
-      <!-- QR Code placeholder - In production, render actual QR -->
-      <div class="w-48 h-48 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
+      <!-- QR Code image from Mercado Pago -->
+      <img
+        v-if="pixQrCodeBase64"
+        :src="'data:image/png;base64,' + pixQrCodeBase64"
+        alt="QR Code Pix"
+        class="w-48 h-48 rounded-lg"
+      />
+      <div
+        v-else
+        class="w-48 h-48 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center"
+      >
         <div class="text-center p-4">
           <UIcon name="i-lucide-qr-code" class="w-24 h-24 text-gray-400" />
           <p class="text-xs text-gray-500 mt-2">QR Code Pix</p>

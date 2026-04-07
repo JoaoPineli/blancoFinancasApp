@@ -8,6 +8,7 @@ export interface ApiError {
   code: string
   message: string
   httpStatus: number
+  handled?: boolean
 }
 
 export interface ApiResponse<T> {
@@ -53,10 +54,11 @@ export function useApi(options: UseApiOptions = {}) {
    * Handles authentication failures as per guardrails:
    * - 401: Invalidate session, redirect to login
    * - 403: Display authorization error
+   * Returns true if the error was handled (toast already shown).
    */
-  function handleAuthError(status: number, endpoint: string): void {
+  function handleAuthError(status: number, endpoint: string): boolean {
     if (status === 401) {
-      if (endpoint.includes('/auth/login')) return
+      if (endpoint.includes('/auth/login')) return false
 
       onUnauthorized?.()
       toast.add({
@@ -66,6 +68,7 @@ export function useApi(options: UseApiOptions = {}) {
         color: 'error'
       })
       navigateTo('/auth')
+      return true
     } else if (status === 403) {
       onForbidden?.()
       toast.add({
@@ -74,7 +77,9 @@ export function useApi(options: UseApiOptions = {}) {
         description: 'Você não tem permissão para realizar esta ação.',
         color: 'error'
       })
+      return true
     }
+    return false
   }
 
   /**
@@ -102,11 +107,12 @@ export function useApi(options: UseApiOptions = {}) {
       const status = (err as { statusCode?: number })?.statusCode || 500
 
       // Handle auth failures centrally
-      if (status === 401 || status === 403) {
-        handleAuthError(status, endpoint)
-      }
+      const authHandled = (status === 401 || status === 403)
+        ? handleAuthError(status, endpoint)
+        : false
 
       const error = normalizeError(err, status)
+      if (authHandled) error.handled = true
       return { data: null, error }
     }
   }

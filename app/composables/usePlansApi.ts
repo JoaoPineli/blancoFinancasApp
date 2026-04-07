@@ -147,7 +147,7 @@ export function usePlansApi() {
 
     const response = await api.get<PlanListApiResponse>('/v1/admin/plans', query)
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao carregar planos',
@@ -188,7 +188,7 @@ export function usePlansApi() {
 
     const response = await api.get<PlanSummaryApiResponse[]>('/v1/admin/plans/summary')
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao carregar planos',
@@ -231,7 +231,7 @@ export function usePlansApi() {
 
     isLoading.value = false
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao criar plano',
@@ -287,7 +287,7 @@ export function usePlansApi() {
 
     isLoading.value = false
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao atualizar plano',
@@ -325,7 +325,7 @@ export function usePlansApi() {
 
     isLoading.value = false
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao deletar plano',
@@ -378,7 +378,7 @@ export function usePlansApi() {
 
     isLoading.value = false
 
-    if (response.error) {
+    if (response.error && !response.error.handled) {
       error.value = response.error.message
       toast.add({
         title: 'Erro ao atualizar status',

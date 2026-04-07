@@ -58,6 +58,16 @@ const statusConfig = computed(() => {
 })
 
 const isPending = computed(() => props.payment.status === 'pending')
+const parseUtc = (value: string) =>
+  new Date(value.replace(' ', 'T').replace(/(\.\d{3})\d+$/, '$1') + 'Z')
+
+const pixExpirationDate = computed(() => {
+  const { createdAt, expirationMinutes } = props.payment
+  if (!createdAt || expirationMinutes == null) return null
+  const date = parseUtc(createdAt)
+  if (Number.isNaN(date.getTime())) return null
+  return new Date(date.getTime() + expirationMinutes * 60000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+})
 </script>
 
 <template>
@@ -153,54 +163,48 @@ const isPending = computed(() => props.payment.status === 'pending')
         </div>
       </template>
 
-      <div class="flex flex-col items-center gap-4">
-        <!-- QR code placeholder -->
-        <div class="w-48 h-48 bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center">
-          <div class="text-center p-4">
+      <div class="flex flex-col items-center gap-3 py-2">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Escaneie o QR Code para pagar
+        </p>
+
+        <div class="bg-white rounded-lg p-3 border">
+          <img
+            v-if="payment.pixQrCodeBase64"
+            :src="'data:image/png;base64,' + payment.pixQrCodeBase64"
+            alt="QR Code Pix"
+            width="180"
+            height="180"
+          >
+          <div
+            v-else
+            class="w-45 h-45 flex items-center justify-center"
+          >
             <UIcon
               name="i-lucide-qr-code"
               class="w-24 h-24 text-gray-400"
             />
-            <p class="text-xs text-gray-500 mt-2">
-              QR Code Pix
-            </p>
           </div>
         </div>
 
-        <!-- Copy-paste code -->
-        <div class="w-full">
-          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Código Pix (copia e cola):
-          </p>
-          <div class="flex gap-2">
-            <UInput
-              :model-value="payment.pixQrCodeData"
-              readonly
-              class="flex-1 font-mono text-xs"
-            />
-            <UButton
-              icon="i-lucide-copy"
-              color="primary"
-              variant="soft"
-              @click="copyToClipboard(payment.pixQrCodeData!)"
-            />
-          </div>
-        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
+          {{ pixExpirationDate ? 'Válido até ' + pixExpirationDate : 'Erro ao carregar data de expiração' }}
+        </p>
 
+        <UButton
+          variant="outline"
+          size="sm"
+          icon="i-lucide-copy"
+          @click="copyToClipboard(payment.pixQrCodeData!)"
+        >
+          Copiar código Pix
+        </UButton>
         <UAlert
           icon="i-lucide-info"
           color="info"
           variant="subtle"
           title="Como pagar"
           description="Abra o app do seu banco, escolha Pix e escaneie o QR code ou cole o código. O pagamento será confirmado automaticamente."
-        />
-
-        <UAlert
-          icon="i-lucide-clock"
-          color="warning"
-          variant="subtle"
-          :title="`Expira em ${payment.expirationMinutes} minutos`"
-          description="Após esse prazo, você precisará gerar um novo pagamento."
         />
       </div>
     </UCard>
