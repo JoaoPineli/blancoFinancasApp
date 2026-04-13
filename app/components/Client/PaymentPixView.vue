@@ -20,10 +20,44 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'back'): void
+  (e: 'payment-confirmed', payment: InstallmentPayment): void
 }>()
 
 const { formatCurrency } = useCurrency()
 const toast = useToast()
+const { getInstallmentPayment } = useFinanceApi()
+
+// -- Polling ---------------------------------------------------------------
+const isPolling = ref(false)
+let pollInterval: ReturnType<typeof setInterval> | null = null
+
+function stopPolling() {
+  if (pollInterval !== null) {
+    clearInterval(pollInterval)
+    pollInterval = null
+  }
+  isPolling.value = false
+}
+
+function startPolling() {
+  if (!isPending.value || !props.payment.id) return
+  isPolling.value = true
+  pollInterval = setInterval(async () => {
+    const updated = await getInstallmentPayment(props.payment.id)
+    if (updated && updated.status !== 'pending') {
+      stopPolling()
+      emit('payment-confirmed', updated)
+    }
+  }, 5000)
+}
+
+onMounted(() => startPolling())
+onUnmounted(() => stopPolling())
+
+watch(() => props.payment.status, (newStatus) => {
+  if (newStatus !== 'pending') stopPolling()
+})
+// --------------------------------------------------------------------------
 
 async function copyToClipboard(text: string) {
   try {
@@ -97,16 +131,23 @@ const pixExpirationDate = computed(() => {
             {{ payment.items.length === 1 ? 'parcela selecionada' : 'parcelas selecionadas' }}
           </p>
         </div>
-        <UBadge
-          :color="statusConfig.color"
-          variant="subtle"
-        >
+        <div class="flex items-center gap-2">
           <UIcon
-            :name="statusConfig.icon"
-            class="w-3.5 h-3.5 mr-1"
+            v-if="isPolling"
+            name="i-lucide-loader-2"
+            class="w-4 h-4 animate-spin text-warning-500"
           />
-          {{ statusConfig.label }}
-        </UBadge>
+          <UBadge
+            :color="statusConfig.color"
+            variant="subtle"
+          >
+            <UIcon
+              :name="statusConfig.icon"
+              class="w-3.5 h-3.5 mr-1"
+            />
+            {{ statusConfig.label }}
+          </UBadge>
+        </div>
       </div>
     </UCard>
 
