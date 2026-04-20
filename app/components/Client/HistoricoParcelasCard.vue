@@ -30,10 +30,10 @@ function statusIcon(status: string): string {
 
 function statusIconClass(status: string): string {
   switch (status) {
-    case 'confirmed': return 'text-green-500'
-    case 'pending': return 'text-amber-500'
+    case 'confirmed': return 'text-success-500'
+    case 'pending': return 'text-warning-500'
     case 'cancelled':
-    case 'failed': return 'text-red-500'
+    case 'failed': return 'text-error-500'
     default: return 'text-gray-400'
   }
 }

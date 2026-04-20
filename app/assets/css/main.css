@@ -4,15 +4,68 @@
 @theme static {
   --font-sans: 'Public Sans', sans-serif;
 
-  --color-emerald-50: #ECFDF5;
-  --color-emerald-100: #D1FAE5;
-  --color-emerald-200: #A7F3D0;
-  --color-emerald-300: #6EE7B7;
-  --color-emerald-400: #34D399;
-  --color-emerald-500: #10B981;
-  --color-emerald-600: #059669;
-  --color-emerald-700: #047857;
-  --color-emerald-800: #065F46;
-  --color-emerald-900: #064E3B;
-  --color-emerald-950: #022C22;
+  /* Brand primary — blanco blue (#006BAD at 600) */
+  --color-blanco-50: #EFF8FF;
+  --color-blanco-100: #D8EFFE;
+  --color-blanco-200: #A8D8FD;
+  --color-blanco-300: #64BAFC;
+  --color-blanco-400: #299CE4;
+  --color-blanco-500: #0E81C9;
+  --color-blanco-600: #006BAD;
+  --color-blanco-700: #005A94;
+  --color-blanco-800: #004574;
+  --color-blanco-900: #003460;
+  --color-blanco-950: #002145;
+
+  /* Brand accent — teal (#118B8D at 500) */
+  --color-accent-50: #EDFAFA;
+  --color-accent-100: #D0F1F1;
+  --color-accent-200: #9EE4E5;
+  --color-accent-300: #5DCFCF;
+  --color-accent-400: #29B5B6;
+  --color-accent-500: #118B8D;
+  --color-accent-600: #0E7374;
+  --color-accent-700: #0B5C5D;
+  --color-accent-800: #094849;
+  --color-accent-900: #073738;
+  --color-accent-950: #042323;
+
+  /* Success — emerald (#10B981 at 500) */
+  --color-success-50: #ECFDF5;
+  --color-success-100: #D1FAE5;
+  --color-success-200: #A7F3D0;
+  --color-success-300: #6EE7B7;
+  --color-success-400: #34D399;
+  --color-success-500: #10B981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065F46;
+  --color-success-900: #064E3B;
+  --color-success-950: #022C22;
+
+  /* Warning — amber (#C47F08 at 600) */
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-200: #FDE68A;
+  --color-warning-300: #FCD34D;
+  --color-warning-400: #FBBF24;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #C47F08;
+  --color-warning-700: #B45309;
+  --color-warning-800: #92400E;
+  --color-warning-900: #78350F;
+  --color-warning-950: #451A03;
+
+  /* Error — red (#EF4343 at 500) */
+  --color-error-50: #FEF2F2;
+  --color-error-100: #FEE2E2;
+  --color-error-200: #FECACA;
+  --color-error-300: #FCA5A5;
+  --color-error-400: #F87171;
+  --color-error-500: #EF4343;
+  --color-error-600: #DC2626;
+  --color-error-700: #B91C1C;
+  --color-error-800: #991B1B;
+  --color-error-900: #7F1D1D;
+  --color-error-950: #450A0A;
 }

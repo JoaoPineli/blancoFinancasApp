@@ -399,7 +399,7 @@ function handleCopyPixCode() {
 
           <p
             v-if="modalError"
-            class="text-sm text-red-500"
+            class="text-sm text-error-500"
           >
             {{ modalError }}
           </p>
@@ -452,7 +452,7 @@ function handleCopyPixCode() {
 
           <div
             v-if="limitWarning"
-            class="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400"
+            class="flex items-center gap-2 text-sm text-warning-600 dark:text-warning-400"
           >
             <UIcon
               name="i-lucide-alert-triangle"
@@ -483,7 +483,7 @@ function handleCopyPixCode() {
             <hr class="my-2">
             <div class="flex justify-between text-sm font-bold">
               <span>Custo total estimado</span>
-              <span class="text-orange-600 dark:text-orange-400">
+              <span class="text-warning-600 dark:text-warning-400">
                 {{ formatCurrency(costBreakdown.total_cost_cents) }}
               </span>
             </div>
@@ -539,28 +539,28 @@ function handleCopyPixCode() {
           </div>
 
           <!-- Non-refundable notice -->
-          <div class="flex items-start gap-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <div class="flex items-start gap-3 bg-warning-50 dark:bg-warning-950 border border-warning-200 dark:border-warning-800 rounded-lg p-4">
             <UIcon
               name="i-lucide-alert-triangle"
-              class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"
+              class="w-5 h-5 text-warning-600 dark:text-warning-400 mt-0.5 shrink-0"
             />
             <div class="space-y-1">
-              <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+              <p class="text-sm font-semibold text-warning-800 dark:text-warning-200">
                 Este valor não é reembolsável
               </p>
-              <p class="text-xs text-amber-700 dark:text-amber-400">
+              <p class="text-xs text-warning-700 dark:text-warning-400">
                 Após a confirmação do pagamento, a taxa de ativação não poderá ser estornada sob nenhuma circunstância.
               </p>
             </div>
           </div>
 
           <!-- Fundo de proteção notice -->
-          <div class="flex items-start gap-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div class="flex items-start gap-3 bg-primary-50 dark:bg-primary-950 border border-primary-200 dark:border-primary-800 rounded-lg p-4">
             <UIcon
               name="i-lucide-shield-check"
-              class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0"
+              class="w-5 h-5 text-primary-600 dark:text-primary-400 mt-0.5 shrink-0"
             />
-            <p class="text-xs text-blue-700 dark:text-blue-300">
+            <p class="text-xs text-primary-700 dark:text-primary-300">
               O pagamento garante sua entrada no <strong>fundo de proteção</strong>, uma reserva destinada a proteger o seu investimento e cobrir imprevistos durante o período de poupança.
             </p>
           </div>

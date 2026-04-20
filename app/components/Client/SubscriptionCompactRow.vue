@@ -28,7 +28,6 @@ const totalAccumulatedCents = computed(() =>
   (sub.value.accumulatedCents ?? 0) + sub.value.yieldCents
 )
 
-const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
 const isEnded = computed(() => sub.value.status === 'cancelled' || sub.value.status === 'completed')
 const isInactive = computed(() => sub.value.status === 'inactive')
 
@@ -87,18 +86,11 @@ const menuItems = computed(() => {
       }
     ],
     [
-      hasDeposits.value
-        ? {
-            label: 'Retirar valor',
-            icon: 'i-lucide-arrow-up-right',
-            onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
-          }
-        : {
-            label: 'Cancelar plano',
-            icon: 'i-lucide-x-circle',
-            color: 'error' as const,
-            onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
-          }
+      {
+        label: 'Retirar valor',
+        icon: 'i-lucide-arrow-up-right',
+        onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
+      }
     ]
   ]
 })
@@ -117,7 +109,7 @@ const menuItems = computed(() => {
       </p>
       <p
         v-if="sub.hasOverdueDeposit"
-        class="text-xs text-red-500 dark:text-red-400"
+        class="text-xs text-error-500 dark:text-error-400"
       >
         Depósito em atraso
       </p>

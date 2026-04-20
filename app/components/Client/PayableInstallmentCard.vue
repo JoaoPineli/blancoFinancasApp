@@ -57,7 +57,7 @@ function handleClick() {
     class="w-full text-left p-4 rounded-lg border-2 transition-all duration-150"
     :class="[
       hasPending
-        ? 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10 opacity-80'
+        ? 'border-primary-200 dark:border-primary-800 bg-primary-50/50 dark:bg-primary-900/10 opacity-80'
         : selected
           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
           : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600'
@@ -130,9 +130,9 @@ function handleClick() {
     <!-- Pending payment message + action -->
     <div
       v-if="hasPending"
-      class="mt-3 pt-3 border-t border-blue-200 dark:border-blue-800 flex items-center justify-between gap-2"
+      class="mt-3 pt-3 border-t border-primary-200 dark:border-primary-800 flex items-center justify-between gap-2"
     >
-      <p class="text-xs text-blue-700 dark:text-blue-300">
+      <p class="text-xs text-primary-700 dark:text-primary-300">
         Já existe um pagamento em processamento para este item.
       </p>
       <UButton

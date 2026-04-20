@@ -48,8 +48,8 @@ const statusActions: Array<{
     label: 'Marcar como Ativo',
     icon: 'i-lucide-user-check',
     color: 'success',
-    iconColorClass: 'text-green-600 dark:text-green-400',
-    iconBgClass: 'bg-green-100 dark:bg-green-900/30',
+    iconColorClass: 'text-success-600 dark:text-success-400',
+    iconBgClass: 'bg-success-100 dark:bg-success-900/30',
     confirmLabel: 'Ativar',
     message: name => `Tem certeza que deseja marcar <strong>${name}</strong> como <strong>Ativo</strong>?`
   },
@@ -68,8 +68,8 @@ const statusActions: Array<{
     label: 'Marcar como Inadimplente',
     icon: 'i-lucide-alert-triangle',
     color: 'error',
-    iconColorClass: 'text-red-600 dark:text-red-400',
-    iconBgClass: 'bg-red-100 dark:bg-red-900/30',
+    iconColorClass: 'text-error-600 dark:text-error-400',
+    iconBgClass: 'bg-error-100 dark:bg-error-900/30',
     confirmLabel: 'Confirmar',
     message: name => `Tem certeza que deseja marcar <strong>${name}</strong> como <strong>Inadimplente</strong>?`
   }

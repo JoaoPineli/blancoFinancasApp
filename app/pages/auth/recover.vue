@@ -96,8 +96,8 @@ async function handleSubmit() {
 
           <template v-else>
             <div class="text-center py-8">
-              <div class="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-4">
-                <UIcon name="i-lucide-mail-check" class="w-8 h-8 text-green-600 dark:text-green-400" />
+              <div class="mx-auto w-16 h-16 bg-success-100 dark:bg-success-900/30 rounded-full flex items-center justify-center mb-4">
+                <UIcon name="i-lucide-mail-check" class="w-8 h-8 text-success-600 dark:text-success-400" />
               </div>
               <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Email enviado!

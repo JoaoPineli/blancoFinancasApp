@@ -23,17 +23,24 @@ const {
   isLoading,
   error,
   fetchSubscriptions,
-  renameSubscription
+  renameSubscription,
+  cancelSubscription
 } = useSubscriptionsApi()
 const { sortSubscriptions } = useSubscriptionHelpers()
 
 // --- View mode & Sort controls ---
 const viewMode = ref<ViewMode>('compact')
 const sortBy = ref<SortOption>('next-due')
+const showEnded = ref(false)
 
-const sortedSubscriptions = computed(() =>
-  sortSubscriptions(subscriptions.value, sortBy.value)
-)
+const ENDED_STATUSES = ['cancelled', 'completed']
+
+const sortedSubscriptions = computed(() => {
+  const filtered = showEnded.value
+    ? subscriptions.value
+    : subscriptions.value.filter(s => !ENDED_STATUSES.includes(s.status))
+  return sortSubscriptions(filtered, sortBy.value)
+})
 
 // --- Accordion: only one card expanded at a time ---
 const expandedId = ref<string | null>(null)
@@ -56,6 +63,28 @@ const renameModal = ref<{ open: boolean, subscriptionId: string, currentName: st
   subscriptionId: '',
   currentName: ''
 })
+
+// Cancel confirmation modal
+const cancelModal = ref<{ open: boolean, subscriptionId: string, planName: string }>({
+  open: false,
+  subscriptionId: '',
+  planName: ''
+})
+const isCancelling = ref(false)
+
+async function handleCancelConfirm() {
+  isCancelling.value = true
+  const result = await cancelSubscription(cancelModal.value.subscriptionId)
+  isCancelling.value = false
+  if (result) {
+    cancelModal.value.open = false
+    toast.add({
+      title: 'Plano cancelado',
+      description: `A poupança "${cancelModal.value.planName}" foi cancelada.`,
+      color: 'success'
+    })
+  }
+}
 
 async function handleRenameSubmit(payload: { subscriptionId: string, name: string }) {
   const result = await renameSubscription(payload.subscriptionId, payload.name)
@@ -125,12 +154,14 @@ function handleAction(action: SubscriptionAction) {
     return
   }
 
-  // terminate — mock for now
-  toast.add({
-    title: 'Cancelar plano',
-    description: 'Função ainda não implementada.',
-    color: 'info'
-  })
+  if (action.type === 'terminate') {
+    const sub = subscriptions.value.find(s => s.id === action.subscriptionId)
+    cancelModal.value = {
+      open: true,
+      subscriptionId: action.subscriptionId,
+      planName: sub?.name || sub?.planTitle || 'esta poupança'
+    }
+  }
 }
 
 onMounted(() => {
@@ -205,8 +236,16 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Sort dropdown -->
-      <div class="flex items-center gap-2">
+      <!-- Right side: Show ended + Sort -->
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Show ended toggle -->
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <USwitch v-model="showEnded" size="sm" />
+          <span class="text-sm text-gray-500 dark:text-gray-400">Mostrar encerrados</span>
+        </label>
+
+        <!-- Sort dropdown -->
+        <div class="flex items-center gap-2">
         <label
           for="sort-select"
           class="text-sm text-gray-500 dark:text-gray-400"
@@ -217,6 +256,7 @@ onMounted(() => {
           :items="SORT_OPTIONS"
           class="w-48"
         />
+        </div>
       </div>
     </div>
 
@@ -238,9 +278,9 @@ onMounted(() => {
     <!-- Error state -->
     <UCard
       v-else-if="error"
-      class="border-red-200 dark:border-red-800"
+      class="border-error-200 dark:border-error-800"
     >
-      <div class="flex items-center gap-3 text-red-600 dark:text-red-400">
+      <div class="flex items-center gap-3 text-error-600 dark:text-error-400">
         <UIcon
           name="i-lucide-alert-circle"
           class="w-5 h-5"
@@ -382,5 +422,45 @@ onMounted(() => {
       :current-name="renameModal.currentName"
       @save="handleRenameSubmit"
     />
+
+    <!-- Cancel confirmation modal -->
+    <UModal v-model:open="cancelModal.open" :dismissible="!isCancelling">
+      <template #content>
+        <div class="p-6 space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-error-100 dark:bg-error-900 flex items-center justify-center">
+              <UIcon name="i-lucide-alert-triangle" class="w-5 h-5 text-error-600 dark:text-error-400" />
+            </div>
+            <div>
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                Cancelar poupança
+              </h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Esta ação não pode ser desfeita.
+              </p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-700 dark:text-gray-300">
+            Tem certeza que deseja cancelar a poupança <strong>{{ cancelModal.planName }}</strong>? O plano será encerrado permanentemente.
+          </p>
+          <div class="flex justify-end gap-3 pt-2">
+            <UButton
+              variant="ghost"
+              :disabled="isCancelling"
+              @click="cancelModal.open = false"
+            >
+              Manter plano
+            </UButton>
+            <UButton
+              color="error"
+              :loading="isCancelling"
+              @click="handleCancelConfirm"
+            >
+              Cancelar poupança
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

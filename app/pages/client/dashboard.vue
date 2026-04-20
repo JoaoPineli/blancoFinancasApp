@@ -91,18 +91,18 @@ onMounted(async () => {
     <!-- Deposit Due / Overdue Banner -->
     <div
       v-if="bannerSeverity === 'error'"
-      class="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950 p-4 flex items-center gap-3"
+      class="rounded-lg border border-error-300 dark:border-error-700 bg-error-50 dark:bg-error-950 p-4 flex items-center gap-3"
       role="alert"
     >
       <UIcon
         name="i-lucide-alert-circle"
-        class="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 shrink-0"
+        class="w-5 h-5 text-error-600 dark:text-error-400 mt-0.5 shrink-0"
       />
       <div class="flex-1">
-        <p class="text-sm font-semibold text-red-800 dark:text-red-200">
+        <p class="text-sm font-semibold text-error-800 dark:text-error-200">
           Depósitos em atraso
         </p>
-        <p class="text-sm text-red-700 dark:text-red-300">
+        <p class="text-sm text-error-700 dark:text-error-300">
           Pagamentos pendentes para: {{ bannerPlanNames }}
         </p>
       </div>
@@ -119,18 +119,18 @@ onMounted(async () => {
 
     <div
       v-else-if="bannerSeverity === 'warn'"
-      class="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 p-4 flex items-start gap-3"
+      class="rounded-lg border border-warning-300 dark:border-warning-700 bg-warning-50 dark:bg-warning-950 p-4 flex items-start gap-3"
       role="alert"
     >
       <UIcon
         name="i-lucide-alert-triangle"
-        class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"
+        class="w-5 h-5 text-warning-600 dark:text-warning-400 mt-0.5 shrink-0"
       />
       <div class="flex-1">
-        <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+        <p class="text-sm font-semibold text-warning-800 dark:text-warning-200">
           Depósitos vencem hoje
         </p>
-        <p class="text-sm text-amber-700 dark:text-amber-300">
+        <p class="text-sm text-warning-700 dark:text-warning-300">
           Pagamentos pendentes para: {{ bannerPlanNames }}
         </p>
       </div>

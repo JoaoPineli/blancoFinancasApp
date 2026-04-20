@@ -55,7 +55,7 @@ function handleNotificationClick(notification: Notification) {
         <!-- Unread badge -->
         <span
           v-if="unreadCount > 0"
-          class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center"
+          class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-error-500 text-white text-[10px] font-bold flex items-center justify-center"
         >
           {{ unreadCount > 99 ? '99+' : unreadCount }}
         </span>
@@ -104,13 +104,13 @@ function handleNotificationClick(notification: Notification) {
               v-for="n in notifications"
               :key="n.id"
               class="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 border-b border-gray-100 dark:border-gray-800 last:border-0"
-              :class="{ 'bg-blue-50 dark:bg-blue-900/10': !n.isRead }"
+              :class="{ 'bg-primary-50 dark:bg-primary-900/10': !n.isRead }"
               @click="handleNotificationClick(n)"
             >
               <div class="shrink-0 mt-0.5">
                 <div
                   class="w-2 h-2 rounded-full mt-1.5"
-                  :class="n.isRead ? 'bg-transparent' : 'bg-blue-500'"
+                  :class="n.isRead ? 'bg-transparent' : 'bg-primary-500'"
                 />
               </div>
               <div class="flex-1 min-w-0">

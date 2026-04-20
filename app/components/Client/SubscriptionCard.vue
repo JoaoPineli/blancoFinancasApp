@@ -56,7 +56,6 @@ const showFeeWarning = computed(() =>
 )
 const dueDateLabel = computed(() => daysUntilLabel(sub.value.nextDueDate))
 
-const hasDeposits = computed(() => totalAccumulatedCents.value > 0)
 const isEnded = computed(() => sub.value.status === 'cancelled' || sub.value.status === 'completed')
 const isInactive = computed(() => sub.value.status === 'inactive')
 
@@ -116,18 +115,11 @@ const menuItems = computed(() => {
       }
     ],
     [
-      hasDeposits.value
-        ? {
-            label: 'Retirar valor',
-            icon: 'i-lucide-arrow-up-right',
-            onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
-          }
-        : {
-            label: 'Cancelar plano',
-            icon: 'i-lucide-x-circle',
-            color: 'error' as const,
-            onSelect: () => emit('action', { type: 'terminate', subscriptionId: sub.value.id })
-          }
+      {
+        label: 'Retirar valor',
+        icon: 'i-lucide-arrow-up-right',
+        onSelect: () => emit('action', { type: 'withdraw', subscriptionId: sub.value.id })
+      }
     ]
   ]
 })
@@ -314,7 +306,7 @@ const feeTooltipText = computed(() => {
               <p
                 class="text-base font-semibold"
                 :class="showFeeWarning
-                  ? 'text-amber-600 dark:text-amber-400'
+                  ? 'text-warning-600 dark:text-warning-400'
                   : 'text-gray-900 dark:text-white'"
               >
                 {{ formatCurrency(sub.totalCostCents) }}
@@ -323,7 +315,7 @@ const feeTooltipText = computed(() => {
                 v-if="feePercent !== null"
                 class="text-xs"
                 :class="showFeeWarning
-                  ? 'text-amber-600 dark:text-amber-400'
+                  ? 'text-warning-600 dark:text-warning-400'
                   : 'text-gray-500 dark:text-gray-400'"
               >
                 ({{ formatPercent(feePercent) }} do objetivo)
@@ -335,7 +327,7 @@ const feeTooltipText = computed(() => {
             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
               Rendimento poupança
             </p>
-            <p class="text-base font-semibold text-green-600 dark:text-green-400">
+            <p class="text-base font-semibold text-success-600 dark:text-success-400">
               {{ sub.yieldCents > 0 ? "+" + formatCurrency(sub.yieldCents) : '—' }}
             </p>
           </div>

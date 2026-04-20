@@ -155,7 +155,7 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'neutral
             class="w-8 h-8 rounded-full flex items-center justify-center"
             :class="event.eventType === 'installment_payment'
               ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-              : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'"
+              : 'bg-warning-100 dark:bg-warning-900/30 text-warning-600 dark:text-warning-400'"
           >
             <UIcon
               :name="eventTypeIcon(event.eventType)"
@@ -191,19 +191,19 @@ function statusColor(status: string): 'success' | 'warning' | 'error' | 'neutral
           <template v-if="event.eventType === 'plan_withdrawal'">
             <p
               v-if="event.status === 'pending'"
-              class="text-xs text-amber-600 dark:text-amber-400 mt-1"
+              class="text-xs text-warning-600 dark:text-warning-400 mt-1"
             >
               Aguardando processamento pelo admin.
             </p>
             <p
               v-else-if="event.status === 'confirmed'"
-              class="text-xs text-green-600 dark:text-green-400 mt-1"
+              class="text-xs text-success-600 dark:text-success-400 mt-1"
             >
               Saque confirmado. O valor estará na sua conta em até 24h.
             </p>
             <p
               v-else-if="event.status === 'cancelled' && event.rejectionReason"
-              class="text-xs text-red-600 dark:text-red-400 mt-1"
+              class="text-xs text-error-600 dark:text-error-400 mt-1"
             >
               Recusado: {{ event.rejectionReason }}
             </p>

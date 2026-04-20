@@ -27,8 +27,8 @@ function statusIcon(status: PayableInstallment['status']): string {
 
 function statusIconClass(status: PayableInstallment['status']): string {
   switch (status) {
-    case 'overdue': return 'text-red-500'
-    case 'due_today': return 'text-amber-500'
+    case 'overdue': return 'text-error-500'
+    case 'due_today': return 'text-warning-500'
     default: return 'text-gray-400 dark:text-gray-500'
   }
 }
@@ -88,7 +88,7 @@ function statusColor(status: PayableInstallment['status']): 'error' | 'warning' 
     >
       <UIcon
         name="i-lucide-check-circle"
-        class="w-10 h-10 text-green-400 mb-2"
+        class="w-10 h-10 text-success-400 mb-2"
       />
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Tudo em dia!

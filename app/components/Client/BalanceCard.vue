@@ -39,8 +39,8 @@ defineProps<{
       <div
         class="flex h-12 w-12 items-center justify-center rounded-lg"
         :class="{
-          'bg-green-100 dark:bg-green-900/30': trend === 'up',
-          'bg-red-100 dark:bg-red-900/30': trend === 'down',
+          'bg-success-100 dark:bg-success-900/30': trend === 'up',
+          'bg-error-100 dark:bg-error-900/30': trend === 'down',
           'bg-gray-100 dark:bg-gray-800': trend === 'neutral' || !trend
         }"
       >
@@ -48,8 +48,8 @@ defineProps<{
           :name="icon"
           class="h-6 w-6"
           :class="{
-            'text-green-600 dark:text-green-400': trend === 'up',
-            'text-red-600 dark:text-red-400': trend === 'down',
+            'text-success-600 dark:text-success-400': trend === 'up',
+            'text-error-600 dark:text-error-400': trend === 'down',
             'text-gray-600 dark:text-gray-400': trend === 'neutral' || !trend
           }"
         />

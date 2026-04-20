@@ -122,7 +122,7 @@ const plans = [
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-500 dark:text-gray-400">Rendimento</span>
-                <span class="font-medium text-green-600 dark:text-green-400">{{ plan.yield }}</span>
+                <span class="font-medium text-success-600 dark:text-success-400">{{ plan.yield }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-gray-500 dark:text-gray-400">Prazo</span>

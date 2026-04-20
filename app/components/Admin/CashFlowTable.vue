@@ -41,7 +41,7 @@ const columns = [
       <div class="flex items-center gap-2">
         <UIcon
           :name="row.original.type === 'inflow' ? 'i-lucide-arrow-down-left' : 'i-lucide-arrow-up-right'"
-          :class="row.original.type === 'inflow' ? 'text-green-500' : 'text-red-500'"
+          :class="row.original.type === 'inflow' ? 'text-success-500' : 'text-error-500'"
         />
         <span>{{ row.original.type === 'inflow' ? 'Entrada' : 'Saída' }}</span>
       </div>
@@ -49,7 +49,7 @@ const columns = [
 
     <template #amountCents-cell="{ row }">
       <span
-        :class="row.original.type === 'inflow' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+        :class="row.original.type === 'inflow' ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'"
         class="font-medium"
       >
         {{ row.original.type === 'inflow' ? '+' : '-' }}{{ formatCurrency(row.original.amountCents) }}

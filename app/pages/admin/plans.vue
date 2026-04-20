@@ -158,8 +158,8 @@ const confirmModalProps = computed(() => {
       confirmLabel: 'Deletar',
       confirmColor: 'error' as const,
       icon: 'i-lucide-alert-triangle',
-      iconColorClass: 'text-red-600 dark:text-red-400',
-      iconBgClass: 'bg-red-100 dark:bg-red-900/30'
+      iconColorClass: 'text-error-600 dark:text-error-400',
+      iconBgClass: 'bg-error-100 dark:bg-error-900/30'
     }
   }
 
@@ -171,8 +171,8 @@ const confirmModalProps = computed(() => {
       confirmLabel: 'Ativar',
       confirmColor: 'success' as const,
       icon: 'i-lucide-check-circle',
-      iconColorClass: 'text-green-600 dark:text-green-400',
-      iconBgClass: 'bg-green-100 dark:bg-green-900/30'
+      iconColorClass: 'text-success-600 dark:text-success-400',
+      iconBgClass: 'bg-success-100 dark:bg-success-900/30'
     }
   }
 
@@ -183,8 +183,8 @@ const confirmModalProps = computed(() => {
     confirmLabel: 'Inativar',
     confirmColor: 'warning' as const,
     icon: 'i-lucide-ban',
-    iconColorClass: 'text-amber-700 dark:text-amber-400',
-    iconBgClass: 'bg-amber-100 dark:bg-amber-900/30'
+    iconColorClass: 'text-warning-700 dark:text-warning-400',
+    iconBgClass: 'bg-warning-100 dark:bg-warning-900/30'
   }
 })
 </script>
@@ -207,10 +207,10 @@ const confirmModalProps = computed(() => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <UCard>
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100 dark:bg-primary-900/30">
             <UIcon
               name="i-lucide-layers"
-              class="w-5 h-5 text-blue-600 dark:text-blue-400"
+              class="w-5 h-5 text-primary-600 dark:text-primary-400"
             />
           </div>
           <div>
@@ -226,17 +226,17 @@ const confirmModalProps = computed(() => {
 
       <UCard>
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-success-100 dark:bg-success-900/30">
             <UIcon
               name="i-lucide-check-circle"
-              class="w-5 h-5 text-green-600 dark:text-green-400"
+              class="w-5 h-5 text-success-600 dark:text-success-400"
             />
           </div>
           <div>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Planos Ativos
             </p>
-            <p class="text-xl font-semibold text-green-600 dark:text-green-400">
+            <p class="text-xl font-semibold text-success-600 dark:text-success-400">
               {{ activePlans }}
             </p>
           </div>

@@ -66,7 +66,7 @@ const progressPercent = computed(() => {
         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             class="h-2 rounded-full transition-all duration-300"
-            :class="sub.status === 'completed' ? 'bg-green-500' : 'bg-primary-500'"
+            :class="sub.status === 'completed' ? 'bg-success-500' : 'bg-primary-500'"
             :style="{ width: `${progressPercent}%` }"
           />
         </div>

@@ -98,15 +98,15 @@ onMounted(async () => {
     <!-- Pending withdrawals alert -->
     <div
       v-if="!isLoadingWithdrawals && pendingWithdrawals.length > 0"
-      class="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 p-4 flex items-center gap-3"
+      class="rounded-lg border border-warning-300 dark:border-warning-700 bg-warning-50 dark:bg-warning-950 p-4 flex items-center gap-3"
       role="alert"
     >
       <UIcon
         name="i-lucide-clock"
-        class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0"
+        class="w-5 h-5 text-warning-600 dark:text-warning-400 shrink-0"
       />
       <div class="flex-1">
-        <p class="text-sm font-semibold text-amber-800 dark:text-amber-200">
+        <p class="text-sm font-semibold text-warning-800 dark:text-warning-200">
           {{ pendingWithdrawals.length }} {{ pendingWithdrawals.length === 1 ? 'saque pendente' : 'saques pendentes' }} aguardando aprovação
         </p>
       </div>
@@ -124,15 +124,15 @@ onMounted(async () => {
     <!-- Inadimplentes alert -->
     <div
       v-if="!isLoadingClients && clientStats.defaulting > 0"
-      class="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950 p-4 flex items-center gap-3"
+      class="rounded-lg border border-error-300 dark:border-error-700 bg-error-50 dark:bg-error-950 p-4 flex items-center gap-3"
       role="alert"
     >
       <UIcon
         name="i-lucide-alert-triangle"
-        class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0"
+        class="w-5 h-5 text-error-600 dark:text-error-400 shrink-0"
       />
       <div class="flex-1">
-        <p class="text-sm font-semibold text-red-800 dark:text-red-200">
+        <p class="text-sm font-semibold text-error-800 dark:text-error-200">
           {{ clientStats.defaulting }} {{ clientStats.defaulting === 1 ? 'cliente inadimplente' : 'clientes inadimplentes' }}
         </p>
       </div>
@@ -163,17 +163,17 @@ onMounted(async () => {
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Clientes Ativos
             </p>
-            <p class="mt-2 text-2xl font-semibold text-green-600 dark:text-green-400">
+            <p class="mt-2 text-2xl font-semibold text-success-600 dark:text-success-400">
               {{ clientStats.active }}
             </p>
             <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
               de {{ clientStats.total }} no total
             </p>
           </div>
-          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-success-100 dark:bg-success-900/30">
             <UIcon
               name="i-lucide-users"
-              class="h-6 w-6 text-green-600 dark:text-green-400"
+              class="h-6 w-6 text-success-600 dark:text-success-400"
             />
           </div>
         </div>
@@ -195,7 +195,7 @@ onMounted(async () => {
             </p>
             <p
               class="mt-2 text-2xl font-semibold"
-              :class="netBalancePositive ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400'"
+              :class="netBalancePositive ? 'text-gray-900 dark:text-white' : 'text-error-600 dark:text-error-400'"
             >
               {{ summary ? formatCurrency(summary.netBalanceCents) : '—' }}
             </p>
@@ -205,12 +205,12 @@ onMounted(async () => {
           </div>
           <div
             class="flex h-12 w-12 items-center justify-center rounded-lg"
-            :class="netBalancePositive ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-red-100 dark:bg-red-900/30'"
+            :class="netBalancePositive ? 'bg-primary-100 dark:bg-primary-900/30' : 'bg-error-100 dark:bg-error-900/30'"
           >
             <UIcon
               name="i-lucide-wallet"
               class="h-6 w-6"
-              :class="netBalancePositive ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'"
+              :class="netBalancePositive ? 'text-primary-600 dark:text-primary-400' : 'text-error-600 dark:text-error-400'"
             />
           </div>
         </div>
@@ -262,7 +262,7 @@ onMounted(async () => {
             </p>
             <p
               class="mt-2 text-2xl font-semibold"
-              :class="pendingWithdrawals.length > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-900 dark:text-white'"
+              :class="pendingWithdrawals.length > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-900 dark:text-white'"
             >
               {{ pendingWithdrawals.length }}
             </p>
@@ -272,12 +272,12 @@ onMounted(async () => {
           </div>
           <div
             class="flex h-12 w-12 items-center justify-center rounded-lg"
-            :class="pendingWithdrawals.length > 0 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-gray-100 dark:bg-gray-800'"
+            :class="pendingWithdrawals.length > 0 ? 'bg-warning-100 dark:bg-warning-900/30' : 'bg-gray-100 dark:bg-gray-800'"
           >
             <UIcon
               name="i-lucide-arrow-up-from-line"
               class="h-6 w-6"
-              :class="pendingWithdrawals.length > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-400'"
+              :class="pendingWithdrawals.length > 0 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-600 dark:text-gray-400'"
             />
           </div>
         </div>
@@ -306,17 +306,17 @@ onMounted(async () => {
           v-else
           class="flex items-center gap-4"
         >
-          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30 shrink-0">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-success-100 dark:bg-success-900/30 shrink-0">
             <UIcon
               name="i-lucide-trending-up"
-              class="w-6 h-6 text-green-600 dark:text-green-400"
+              class="w-6 h-6 text-success-600 dark:text-success-400"
             />
           </div>
           <div>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Entradas do Mês
             </p>
-            <p class="text-xl font-semibold text-green-600 dark:text-green-400">
+            <p class="text-xl font-semibold text-success-600 dark:text-success-400">
               {{ summary ? formatCurrency(summary.totalInflowCents) : '—' }}
             </p>
           </div>
@@ -333,17 +333,17 @@ onMounted(async () => {
           v-else
           class="flex items-center gap-4"
         >
-          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30 shrink-0">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-error-100 dark:bg-error-900/30 shrink-0">
             <UIcon
               name="i-lucide-trending-down"
-              class="w-6 h-6 text-red-600 dark:text-red-400"
+              class="w-6 h-6 text-error-600 dark:text-error-400"
             />
           </div>
           <div>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               Saídas do Mês
             </p>
-            <p class="text-xl font-semibold text-red-600 dark:text-red-400">
+            <p class="text-xl font-semibold text-error-600 dark:text-error-400">
               {{ summary ? formatCurrency(summary.totalOutflowCents) : '—' }}
             </p>
           </div>
@@ -416,24 +416,24 @@ onMounted(async () => {
         >
           <div class="flex items-center justify-between py-3">
             <div class="flex items-center gap-2">
-              <div class="w-2 h-2 rounded-full bg-green-500" />
+              <div class="w-2 h-2 rounded-full bg-success-500" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Ativos</span>
             </div>
-            <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ clientStats.active }}</span>
+            <span class="text-sm font-semibold text-success-600 dark:text-success-400">{{ clientStats.active }}</span>
           </div>
           <div class="flex items-center justify-between py-3">
             <div class="flex items-center gap-2">
-              <div class="w-2 h-2 rounded-full bg-amber-500" />
+              <div class="w-2 h-2 rounded-full bg-warning-500" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Registrados (aguardando ativação)</span>
             </div>
-            <span class="text-sm font-semibold text-amber-600 dark:text-amber-400">{{ clientStats.registered }}</span>
+            <span class="text-sm font-semibold text-warning-600 dark:text-warning-400">{{ clientStats.registered }}</span>
           </div>
           <div class="flex items-center justify-between py-3">
             <div class="flex items-center gap-2">
-              <div class="w-2 h-2 rounded-full bg-red-500" />
+              <div class="w-2 h-2 rounded-full bg-error-500" />
               <span class="text-sm text-gray-700 dark:text-gray-300">Inadimplentes</span>
             </div>
-            <span class="text-sm font-semibold text-red-600 dark:text-red-400">{{ clientStats.defaulting }}</span>
+            <span class="text-sm font-semibold text-error-600 dark:text-error-400">{{ clientStats.defaulting }}</span>
           </div>
           <div class="flex items-center justify-between py-3">
             <div class="flex items-center gap-2">
@@ -491,10 +491,10 @@ onMounted(async () => {
             class="flex items-center justify-between py-3 gap-3"
           >
             <div class="flex items-center gap-3 min-w-0">
-              <div class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 shrink-0">
+              <div class="flex h-8 w-8 items-center justify-center rounded-full bg-warning-100 dark:bg-warning-900/30 shrink-0">
                 <UIcon
                   name="i-lucide-user"
-                  class="w-4 h-4 text-amber-600 dark:text-amber-400"
+                  class="w-4 h-4 text-warning-600 dark:text-warning-400"
                 />
               </div>
               <div class="min-w-0">

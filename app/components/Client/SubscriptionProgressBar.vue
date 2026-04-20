@@ -68,7 +68,7 @@ const excessCents = computed(() => {
       <div
         v-if="isAvailable"
         class="h-full transition-all duration-300"
-        :class="isExceeded ? 'bg-green-500' : 'bg-primary-500'"
+        :class="isExceeded ? 'bg-success-500' : 'bg-primary-500'"
         :style="{ width: `${visualPercentage}%` }"
       />
     </div>
@@ -83,7 +83,7 @@ const excessCents = computed(() => {
         <span class="font-medium">{{ Math.round(percentage) }}% concluído</span>
         <span
           v-if="isExceeded"
-          class="text-green-600 dark:text-green-400"
+          class="text-success-600 dark:text-success-400"
         >
           Excedente: {{ formatCurrency(excessCents) }}
         </span>

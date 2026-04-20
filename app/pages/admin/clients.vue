@@ -91,17 +91,17 @@ const statCards = computed(() => [
     label: 'Total',
     value: stats.value.total,
     icon: 'i-lucide-users',
-    iconBg: 'bg-blue-100 dark:bg-blue-900/30',
-    iconColor: 'text-blue-600 dark:text-blue-400',
+    iconBg: 'bg-primary-100 dark:bg-primary-900/30',
+    iconColor: 'text-primary-600 dark:text-primary-400',
     valueColor: 'text-gray-900 dark:text-white'
   },
   {
     label: 'Ativos',
     value: stats.value.active,
     icon: 'i-lucide-user-check',
-    iconBg: 'bg-green-100 dark:bg-green-900/30',
-    iconColor: 'text-green-600 dark:text-green-400',
-    valueColor: 'text-green-600 dark:text-green-400'
+    iconBg: 'bg-success-100 dark:bg-success-900/30',
+    iconColor: 'text-success-600 dark:text-success-400',
+    valueColor: 'text-success-600 dark:text-success-400'
   },
   {
     label: 'Inativos',
@@ -115,17 +115,17 @@ const statCards = computed(() => [
     label: 'Inadimplentes',
     value: stats.value.defaulting,
     icon: 'i-lucide-alert-triangle',
-    iconBg: 'bg-red-100 dark:bg-red-900/30',
-    iconColor: 'text-red-600 dark:text-red-400',
-    valueColor: 'text-red-600 dark:text-red-400'
+    iconBg: 'bg-error-100 dark:bg-error-900/30',
+    iconColor: 'text-error-600 dark:text-error-400',
+    valueColor: 'text-error-600 dark:text-error-400'
   },
   {
     label: 'Registrados',
     value: stats.value.registered,
     icon: 'i-lucide-user-plus',
-    iconBg: 'bg-amber-100 dark:bg-amber-900/30',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    valueColor: 'text-amber-600 dark:text-amber-400'
+    iconBg: 'bg-warning-100 dark:bg-warning-900/30',
+    iconColor: 'text-warning-600 dark:text-warning-400',
+    valueColor: 'text-warning-600 dark:text-warning-400'
   }
 ])
 

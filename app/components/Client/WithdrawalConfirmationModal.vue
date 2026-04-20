@@ -79,7 +79,7 @@ function handleConfirm() {
       <div class="flex items-center gap-2">
         <UIcon
           name="i-lucide-arrow-up-right"
-          class="w-5 h-5 text-amber-500"
+          class="w-5 h-5 text-warning-500"
         />
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
           Solicitar retirada

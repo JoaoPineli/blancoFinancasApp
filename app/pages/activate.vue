@@ -89,10 +89,10 @@ onMounted(() => {
 
             <!-- Success -->
             <template v-else-if="activationSuccess">
-              <div class="mx-auto w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+              <div class="mx-auto w-16 h-16 rounded-full bg-success-100 dark:bg-success-900 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-check-circle"
-                  class="w-8 h-8 text-green-600 dark:text-green-400"
+                  class="w-8 h-8 text-success-600 dark:text-success-400"
                 />
               </div>
               <div>
@@ -115,10 +115,10 @@ onMounted(() => {
 
             <!-- Error -->
             <template v-else>
-              <div class="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+              <div class="mx-auto w-16 h-16 rounded-full bg-error-100 dark:bg-error-900 flex items-center justify-center">
                 <UIcon
                   name="i-lucide-x-circle"
-                  class="w-8 h-8 text-red-600 dark:text-red-400"
+                  class="w-8 h-8 text-error-600 dark:text-error-400"
                 />
               </div>
               <div>

@@ -271,7 +271,7 @@ onMounted(async () => {
           <div class="text-center py-6">
             <UIcon
               name="i-lucide-check-circle"
-              class="w-12 h-12 text-green-400 mx-auto mb-3"
+              class="w-12 h-12 text-success-400 mx-auto mb-3"
             />
             <p class="text-gray-700 dark:text-gray-300 font-medium">
               Tudo em dia!

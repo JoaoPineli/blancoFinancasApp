@@ -46,7 +46,7 @@ function handleCancel() {
       <div class="flex items-center gap-2">
         <UIcon
           name="i-lucide-x-circle"
-          class="w-5 h-5 text-red-500"
+          class="w-5 h-5 text-error-500"
         />
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
           Recusar saque

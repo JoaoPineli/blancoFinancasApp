@@ -418,6 +418,36 @@ export function useSubscriptionsApi() {
   }
 
   /**
+   * Cancels an inactive subscription.
+   */
+  async function cancelSubscription(
+    subscriptionId: string
+  ): Promise<Subscription | null> {
+    const response = await api.post<SubscriptionApiResponse>(
+      `/v1/subscriptions/${subscriptionId}/cancel`,
+      {}
+    )
+
+    if (response.error && !response.error.handled) {
+      toast.add({
+        title: 'Erro ao cancelar poupança',
+        description: response.error.message,
+        color: 'error'
+      })
+      return null
+    }
+
+    if (response.data) {
+      const updated = toSubscription(response.data)
+      const idx = subscriptions.value.findIndex(s => s.id === updated.id)
+      if (idx >= 0) subscriptions.value[idx] = updated
+      return updated
+    }
+
+    return null
+  }
+
+  /**
    * Retrieves the current activation payment for a subscription.
    */
   async function getActivationPayment(
@@ -444,6 +474,7 @@ export function useSubscriptionsApi() {
     createSubscription,
     updateDepositDay,
     renameSubscription,
+    cancelSubscription,
     getDashboardDueStatus,
     createOrGetActivationPayment,
     getActivationPayment
