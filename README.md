@@ -1,60 +1,91 @@
-# Nuxt Starter Template
+# Blanco Finanças App
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+Frontend for Blanco Finanças — a Brazilian investment platform. Built with Nuxt 4 and Nuxt UI, providing separate portals for clients and administrators.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+## Stack
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
-
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-  </picture>
-</a>
-
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
-
-## Quick Start
-
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
-```
-
-## Deploy your own
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+- **Nuxt 4.2** — full-stack Vue framework (file-based routing, SSR)
+- **Nuxt UI 4.3** — component library
+- **Vue 3** + **TypeScript 5.9+**
+- **pnpm** — package manager
 
 ## Setup
-
-Make sure to install the dependencies:
 
 ```bash
 pnpm install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+Copy and fill in environment variables:
 
 ```bash
-pnpm dev
+cp .env.example .env
 ```
 
-## Production
+| Variable | Description | Default |
+|---|---|---|
+| `NUXT_PUBLIC_API_BASE_URL` | Backend API base URL | `http://localhost:8000/api` |
 
-Build the application for production:
+## Commands
 
 ```bash
-pnpm build
+pnpm dev        # Development server at http://localhost:3000
+pnpm build      # Production build
+pnpm preview    # Preview production build
+pnpm lint       # ESLint
+pnpm typecheck  # TypeScript validation
 ```
 
-Locally preview production build:
+## Architecture
 
-```bash
-pnpm preview
+Pages orchestrate, composables own data fetching, components only render.
+
+```
+app/
+├── pages/
+│   ├── index.vue          # Landing page (prerendered)
+│   ├── activate.vue       # Account activation
+│   ├── auth/              # login, register, email confirm, password recovery
+│   ├── client/            # Protected client portal
+│   │   ├── dashboard.vue
+│   │   ├── finance.vue    # Deposits, withdrawals, PIX
+│   │   ├── plans.vue
+│   │   └── support.vue
+│   └── admin/             # Protected admin panel
+│       ├── dashboard.vue
+│       ├── clients.vue
+│       ├── plans.vue
+│       ├── finance.vue
+│       ├── withdrawals.vue
+│       └── reports.vue
+├── composables/
+│   ├── useApi.ts               # Central HTTP gateway (auth + error handling)
+│   ├── useAuth.ts              # Auth state
+│   ├── useCurrency.ts          # BRL formatting (Intl.NumberFormat)
+│   ├── useValidation.ts        # Form validation rules
+│   ├── useSubscriptionHelpers.ts
+│   ├── useDashboardApi.ts
+│   ├── useFinanceApi.ts
+│   ├── usePlansApi.ts
+│   ├── useSubscriptionsApi.ts
+│   ├── useNotificationsApi.ts
+│   ├── useAdminClientsApi.ts
+│   ├── useAdminFinanceApi.ts
+│   ├── useAdminWithdrawalsApi.ts
+│   └── useAdminReportsApi.ts
+├── components/
+│   ├── App/                    # Header, Sidebar
+│   ├── Client/                 # BalanceCard, SubscriptionCard, PaymentPixView,
+│   │                           #   YieldChart, WithdrawalForm, and more
+│   └── Admin/                  # ClientTable, PlanCard, CashFlowTable,
+│                               #   FinanceSummary, and more
+└── middleware/
+    └── auth.ts                 # Route guard; enforces roles (ADMIN, CLIENT, REGISTERED)
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Key Rules
+
+- **No API calls in components or pages** — all data fetching goes through composables.
+- **No financial calculations on the frontend** — all values come pre-calculated from the backend.
+- **JWT tokens are stored in httpOnly cookies only.**
+- Role-based access control is enforced server-side; frontend role checks are UI-only.
+- Money display uses `useCurrency.ts` (`Intl.NumberFormat` for BRL) — never raw arithmetic.
