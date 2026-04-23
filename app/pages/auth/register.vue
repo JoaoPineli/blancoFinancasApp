@@ -123,7 +123,7 @@ async function handleRegister() {
 
 <template>
   <UApp>
-    <div class="min-h-screen flex">
+    <div class="flex-1 flex">
       <!-- Left side - Decorative -->
       <div class="hidden lg:flex flex-1 bg-primary-600 items-center justify-center p-8">
         <div class="text-center text-white">

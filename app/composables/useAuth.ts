@@ -13,6 +13,7 @@ export interface User {
   email: string
   cpfCnpj: string
   status: UserStatus
+  nickname?: string
 }
 
 export interface AuthState {
@@ -120,6 +121,7 @@ export function useAuth() {
         cpf: string
         role: UserRole
         status: UserStatus
+        nickname?: string
       }>('/v1/auth/me')
 
       if (apiError || !data) {
@@ -135,7 +137,8 @@ export function useAuth() {
         email: data.email,
         cpfCnpj: data.cpf,
         role: data.role,
-        status: data.status
+        status: data.status,
+        nickname: data.nickname || undefined
       }
     }
   }

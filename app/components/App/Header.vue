@@ -51,7 +51,7 @@ onUnmounted(() => {
       <div class="flex items-center gap-3">
         <div class="text-right">
           <p class="text-sm font-medium text-gray-900 dark:text-white">
-            {{ auth.user.value?.name }}
+            {{ auth.user.value?.nickname || auth.user.value?.name || 'Usuário' }}
           </p>
           <p class="text-xs text-gray-500 dark:text-gray-400">
             {{ auth.user.value?.email }}

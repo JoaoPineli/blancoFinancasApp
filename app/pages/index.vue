@@ -60,8 +60,8 @@ const plans = [
   <div>
     <!-- Hero Section -->
     <UPageHero
-      title="Invista no seu futuro com segurança"
-      description="A Blanco Finanças oferece investimentos com rendimentos mensais transparentes e segurança garantida. Comece a investir hoje e alcance seus objetivos financeiros."
+      title="Planeje seu futuro com segurança"
+      description="A Blanco Finanças oferece planos de poupança com ganhos mensais transparentes e segurança garantida. Comece a poupar hoje e alcance seus objetivos financeiros."
       :links="[
         {
           label: 'Começar agora',
@@ -104,7 +104,10 @@ const plans = [
               <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
                 {{ plan.name }}
               </h3>
-              <UBadge v-if="plan.highlight" color="primary">
+              <UBadge
+                v-if="plan.highlight"
+                color="primary"
+              >
                 Popular
               </UBadge>
             </div>
@@ -132,7 +135,10 @@ const plans = [
           </div>
 
           <template #footer>
-            <NuxtLink to="/auth" class="w-full">
+            <NuxtLink
+              to="/auth"
+              class="w-full"
+            >
               <UButton
                 :color="plan.highlight ? 'primary' : 'neutral'"
                 :variant="plan.highlight ? 'solid' : 'soft'"
@@ -150,14 +156,16 @@ const plans = [
     <UPageSection
       id="como-funciona"
       title="Como funciona"
-      description="Invista em poucos passos e comece a ver seus rendimentos."
+      description="Crie uma poupança em poucos passos e comece a ver seus rendimentos."
     >
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
         <div class="text-center">
           <div class="w-16 h-16 mx-auto mb-4 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
             <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">1</span>
           </div>
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Cadastre-se</h3>
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
+            Cadastre-se
+          </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Crie sua conta em poucos minutos com seus dados básicos.
           </p>
@@ -167,7 +175,9 @@ const plans = [
           <div class="w-16 h-16 mx-auto mb-4 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
             <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">2</span>
           </div>
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Escolha seu plano</h3>
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
+            Escolha seu plano
+          </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Selecione o plano que melhor se adapta ao seu perfil.
           </p>
@@ -177,7 +187,9 @@ const plans = [
           <div class="w-16 h-16 mx-auto mb-4 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
             <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">3</span>
           </div>
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Faça seu depósito</h3>
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
+            Faça seu depósito
+          </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Deposite via Pix de forma rápida e segura.
           </p>
@@ -187,7 +199,9 @@ const plans = [
           <div class="w-16 h-16 mx-auto mb-4 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
             <span class="text-2xl font-bold text-primary-600 dark:text-primary-400">4</span>
           </div>
-          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Acompanhe</h3>
+          <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
+            Acompanhe
+          </h3>
           <p class="text-sm text-gray-600 dark:text-gray-400">
             Veja seus rendimentos crescerem mês a mês.
           </p>

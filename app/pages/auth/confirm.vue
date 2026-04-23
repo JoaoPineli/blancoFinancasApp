@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
 
 <template>
   <UApp>
-    <div class="min-h-screen flex items-center justify-center px-4">
+    <div class="flex-1 flex items-center justify-center px-4">
       <div class="w-full max-w-md">
         <UCard>
           <div class="text-center space-y-6 py-4">

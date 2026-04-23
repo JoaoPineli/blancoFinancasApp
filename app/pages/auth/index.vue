@@ -67,7 +67,7 @@ async function handleLogin() {
 
 <template>
   <UApp>
-    <div class="min-h-screen flex">
+    <div class="flex-1 flex">
       <!-- Left side - Form -->
       <div class="flex-1 flex items-center justify-center px-8">
         <div class="w-full max-w-md">
@@ -81,18 +81,45 @@ async function handleLogin() {
           </div>
 
           <UCard>
-            <form class="space-y-4" @submit.prevent="handleLogin">
-              <UFormField label="Email" :error="emailError" required>
-                <UInput v-model="form.email" type="email" placeholder="seu@email.com" icon="i-lucide-mail"
-                  autocomplete="email" class="w-full" />
+            <form
+              class="space-y-4"
+              @submit.prevent="handleLogin"
+            >
+              <UFormField
+                label="Email"
+                :error="emailError"
+                required
+              >
+                <UInput
+                  v-model="form.email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  icon="i-lucide-mail"
+                  autocomplete="email"
+                  class="w-full"
+                />
               </UFormField>
 
-              <UFormField label="Senha" required>
-                <UInput v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••"
-                  icon="i-lucide-lock" autocomplete="current-password" class="w-full">
+              <UFormField
+                label="Senha"
+                required
+              >
+                <UInput
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="••••••••"
+                  icon="i-lucide-lock"
+                  autocomplete="current-password"
+                  class="w-full"
+                >
                   <template #trailing>
-                    <UButton :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" color="neutral" variant="ghost"
-                      size="xs" @click="showPassword = !showPassword" />
+                    <UButton
+                      :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                      color="neutral"
+                      variant="ghost"
+                      size="xs"
+                      @click="showPassword = !showPassword"
+                    />
                   </template>
                 </UInput>
               </UFormField>
@@ -101,15 +128,24 @@ async function handleLogin() {
                 <UCheckbox label="Lembrar de mim" />
               </div>
 
-              <UButton type="submit" color="primary" block size="lg" :loading="isLoading"
-                :disabled="!form.email || !form.password || !!emailError">
+              <UButton
+                type="submit"
+                color="primary"
+                block
+                size="lg"
+                :loading="isLoading"
+                :disabled="!form.email || !form.password || !!emailError"
+              >
                 Entrar
               </UButton>
             </form>
           </UCard>
 
           <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <NuxtLink to="/auth/register" class="text-primary-600 hover:text-primary-500 font-medium">
+            <NuxtLink
+              to="/auth/register"
+              class="text-primary-600 hover:text-primary-500 font-medium"
+            >
               Não tem uma conta? Registre-se
             </NuxtLink>
           </p>
@@ -119,12 +155,15 @@ async function handleLogin() {
       <!-- Right side - Decorative -->
       <div class="hidden lg:flex flex-1 bg-primary-600 items-center justify-center p-8">
         <div class="text-center text-white">
-          <UIcon name="i-lucide-trending-up" class="w-24 h-24 mb-6 opacity-80" />
+          <UIcon
+            name="i-lucide-trending-up"
+            class="w-24 h-24 mb-6 opacity-80"
+          />
           <h2 class="text-3xl font-bold mb-4">
-            Invista com segurança
+            Poupe com segurança
           </h2>
           <p class="text-lg opacity-80 max-w-md">
-            Acompanhe seus investimentos, rendimentos e faça saques de forma simples e transparente.
+            Acompanhe suas poupanças, ganhos e faça saques de forma simples e transparente.
           </p>
         </div>
       </div>

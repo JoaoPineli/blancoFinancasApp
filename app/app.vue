@@ -24,6 +24,9 @@ useSeoMeta({
 
 const route = useRoute()
 
+const runtimeConfig = useRuntimeConfig()
+const creatorUrl = (runtimeConfig.public.creatorUrl as string) || 'https://github.com/JoaoPineli'
+
 const isPublicRoute = computed(() => {
   return route.path === '/' || route.path.startsWith('/auth')
 })
@@ -41,36 +44,44 @@ const isAdminRoute = computed(() => {
   <UApp>
     <!-- Public layout -->
     <template v-if="isPublicRoute">
-      <UHeader>
-        <template #left>
-          <NuxtLink to="/">
-            <AppLogo class="h-8 w-auto" />
-          </NuxtLink>
-        </template>
+      <div class="flex flex-col min-h-screen">
+        <UHeader>
+          <template #left>
+            <NuxtLink to="/">
+              <AppLogo class="h-8 w-auto" />
+            </NuxtLink>
+          </template>
 
-        <template #right>
-          <UColorModeButton />
-          <UButton
-            to="/auth"
-            color="primary"
-            variant="solid"
-          >
-            Entrar
-          </UButton>
-        </template>
-      </UHeader>
+          <template #right>
+            <UColorModeButton />
+            <UButton
+              to="/auth"
+              color="primary"
+              variant="solid"
+            >
+              Entrar
+            </UButton>
+          </template>
+        </UHeader>
 
-      <UMain>
-        <NuxtPage />
-      </UMain>
+        <UMain class="flex-1 flex flex-col min-h-0">
+          <NuxtPage />
+        </UMain>
 
-      <UFooter>
-        <template #left>
-          <p class="text-sm text-muted">
-            © {{ new Date().getFullYear() }} Blanco Finanças. Todos os direitos reservados.
-          </p>
-        </template>
-      </UFooter>
+        <UFooter class="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <template #left>
+            <p class="text-sm text-muted">
+              © {{ new Date().getFullYear() }} Blanco Finanças. Criado e desenvolvido por
+              <a
+                :href="creatorUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-primary hover:underline"
+              >João Pineli</a>.
+            </p>
+          </template>
+        </UFooter>
+      </div>
     </template>
 
     <!-- Client layout -->
