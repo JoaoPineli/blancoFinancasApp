@@ -33,7 +33,8 @@ const {
   getRecommendation,
   calculateCost,
   createSubscription,
-  createOrGetActivationPayment
+  createOrGetActivationPayment,
+  getActivationPayment
 } = useSubscriptionsApi()
 
 const modalPhase = ref<'input' | 'recommendation' | 'terms' | 'activation-payment'>('input')
@@ -89,6 +90,28 @@ const activationPayment = ref<ActivationPaymentApiResponse | null>(null)
 const createdSubscriptionId = ref<string | null>(null)
 const isLoadingActivation = ref(false)
 
+let pollInterval: ReturnType<typeof setInterval> | null = null
+
+function startPolling() {
+  if (pollInterval) return
+  pollInterval = setInterval(async () => {
+    const subId = createdSubscriptionId.value ?? props.activateSubscriptionId
+    if (!subId) return
+    const updated = await getActivationPayment(subId)
+    if (updated) {
+      activationPayment.value = updated
+      if (updated.status !== 'pending') stopPolling()
+    }
+  }, 5000)
+}
+
+function stopPolling() {
+  if (pollInterval) {
+    clearInterval(pollInterval)
+    pollInterval = null
+  }
+}
+
 const parseUtc = (value: string) =>
   new Date(value.replace(' ', 'T').replace(/(\.\d{3})\d+$/, '$1') + 'Z')
 
@@ -119,6 +142,7 @@ watch(open, async (isOpen) => {
 })
 
 function resetForm() {
+  stopPolling()
   modalPhase.value = 'input'
   modalError.value = null
   Object.assign(form, initialForm)
@@ -129,6 +153,11 @@ function resetForm() {
   activationPayment.value = null
   createdSubscriptionId.value = null
 }
+
+watch(modalPhase, (phase) => {
+  if (phase === 'activation-payment') startPolling()
+  else stopPolling()
+})
 
 function handleClose() {
   emit('close')
@@ -601,82 +630,136 @@ function handleCopyPixCode() {
           v-else-if="modalPhase === 'activation-payment' && activationPayment"
           class="space-y-4"
         >
-          <!-- Fee breakdown -->
-          <div class="border rounded-lg p-4 space-y-2">
-            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Taxa de ativação
-            </h4>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500">Taxa administrativa</span>
-              <span>{{ formatCurrency(activationPayment.admin_tax_cents) }}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500">Seguro</span>
-              <span>{{ formatCurrency(activationPayment.insurance_cents) }}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-gray-500">Taxa Pix (0,99%)</span>
-              <span>{{ formatCurrency(activationPayment.pix_transaction_fee_cents) }}</span>
-            </div>
-            <hr class="my-2">
-            <div class="flex justify-between text-sm font-bold">
-              <span>Total</span>
-              <span class="text-primary-600 dark:text-primary-400">
-                {{ formatCurrency(activationPayment.total_amount_cents) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- PIX QR code -->
+          <!-- Confirmed state -->
           <div
-            v-if="activationPayment.pix_qr_code_data"
-            class="flex flex-col items-center gap-3 py-2"
+            v-if="activationPayment.status === 'confirmed'"
+            class="flex flex-col items-center gap-4 py-6"
           >
-            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Escaneie o QR Code para pagar
-            </p>
-            <div class="bg-white rounded-lg p-3 border">
-              <img
-                v-if="activationPayment.pix_qr_code_base64"
-                :src="'data:image/png;base64,' + activationPayment.pix_qr_code_base64"
-                alt="QR Code Pix"
-                width="180"
-                height="180"
-              >
-              <div
-                v-else
-                class="w-45 h-45 flex items-center justify-center"
-              >
-                <UIcon
-                  name="i-lucide-qr-code"
-                  class="w-24 h-24 text-gray-400"
-                />
-              </div>
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
-              {{ pixExpirationDate ? 'Válido até ' + pixExpirationDate : 'Erro ao calcular data de expiração' }}
+            <UIcon
+              name="i-lucide-circle-check"
+              class="w-16 h-16 text-green-500"
+            />
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Pagamento confirmado!
+            </h3>
+            <p class="text-sm text-center text-gray-500 dark:text-gray-400">
+              Sua poupança foi ativada com sucesso.
             </p>
             <UButton
-              variant="outline"
-              size="sm"
-              icon="i-lucide-copy"
-              @click="handleCopyPixCode"
+              block
+              @click="handleActivationPaymentDone"
             >
-              Copiar código Pix
+              Fechar
             </UButton>
           </div>
 
-          <p class="text-xs text-center text-gray-500 dark:text-gray-400">
-            Após o pagamento ser confirmado, sua poupança será ativada automaticamente.
-          </p>
-
-          <UButton
-            block
-            variant="outline"
-            @click="handleActivationPaymentDone"
+          <!-- Expired state -->
+          <div
+            v-else-if="activationPayment.status === 'expired'"
+            class="flex flex-col items-center gap-4 py-6"
           >
-            Fechar e verificar depois
-          </UButton>
+            <UIcon
+              name="i-lucide-clock-alert"
+              class="w-16 h-16 text-amber-500"
+            />
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              QR Code expirado
+            </h3>
+            <p class="text-sm text-center text-gray-500 dark:text-gray-400">
+              O tempo para pagamento expirou. Feche e abra novamente para gerar um novo código.
+            </p>
+            <UButton
+              block
+              variant="outline"
+              @click="handleActivationPaymentDone"
+            >
+              Fechar
+            </UButton>
+          </div>
+
+          <!-- Pending state: QR code + polling indicator -->
+          <template v-else>
+            <!-- Fee breakdown -->
+            <div class="border rounded-lg p-4 space-y-2">
+              <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Taxa de ativação
+              </h4>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Taxa administrativa</span>
+                <span>{{ formatCurrency(activationPayment.admin_tax_cents) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Seguro</span>
+                <span>{{ formatCurrency(activationPayment.insurance_cents) }}</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-500">Taxa Pix (0,99%)</span>
+                <span>{{ formatCurrency(activationPayment.pix_transaction_fee_cents) }}</span>
+              </div>
+              <hr class="my-2">
+              <div class="flex justify-between text-sm font-bold">
+                <span>Total</span>
+                <span class="text-primary-600 dark:text-primary-400">
+                  {{ formatCurrency(activationPayment.total_amount_cents) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- PIX QR code -->
+            <div
+              v-if="activationPayment.pix_qr_code_data"
+              class="flex flex-col items-center gap-3 py-2"
+            >
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Escaneie o QR Code para pagar
+              </p>
+              <div class="bg-white rounded-lg p-3 border">
+                <img
+                  v-if="activationPayment.pix_qr_code_base64"
+                  :src="'data:image/png;base64,' + activationPayment.pix_qr_code_base64"
+                  alt="QR Code Pix"
+                  width="180"
+                  height="180"
+                >
+                <div
+                  v-else
+                  class="w-45 h-45 flex items-center justify-center"
+                >
+                  <UIcon
+                    name="i-lucide-qr-code"
+                    class="w-24 h-24 text-gray-400"
+                  />
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 dark:text-gray-400 text-center">
+                {{ pixExpirationDate ? 'Válido até ' + pixExpirationDate : 'Erro ao calcular data de expiração' }}
+              </p>
+              <UButton
+                variant="outline"
+                size="sm"
+                icon="i-lucide-copy"
+                @click="handleCopyPixCode"
+              >
+                Copiar código Pix
+              </UButton>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <UIcon
+                name="i-lucide-loader-2"
+                class="w-3 h-3 animate-spin"
+              />
+              Aguardando confirmação do pagamento...
+            </div>
+
+            <UButton
+              block
+              variant="outline"
+              @click="handleActivationPaymentDone"
+            >
+              Fechar e verificar depois
+            </UButton>
+          </template>
         </div>
       </UCard>
     </template>

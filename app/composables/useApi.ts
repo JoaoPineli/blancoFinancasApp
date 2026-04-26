@@ -26,6 +26,7 @@ export function useApi(options: UseApiOptions = {}) {
   const config = useRuntimeConfig()
   const baseUrl = config.public.apiBaseUrl as string
   const toast = useToast()
+  const router = useRouter()
   const token = options.token ?? useCookie<string | null>('auth_token')
   const onUnauthorized = options.onUnauthorized
   const onForbidden = options.onForbidden
@@ -67,7 +68,7 @@ export function useApi(options: UseApiOptions = {}) {
         description: 'Sua sessão expirou. Por favor, faça login novamente.',
         color: 'error'
       })
-      navigateTo('/auth')
+      router.push('/auth')
       return true
     } else if (status === 403) {
       onForbidden?.()

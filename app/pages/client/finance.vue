@@ -12,8 +12,7 @@
  * - All HTTP through useFinanceApi composable.
  * - Simple language for low-literacy audience.
  */
-import type { WithdrawableSubscription } from '~/composables/useFinanceApi'
-import type { Subscription } from '~/composables/useSubscriptionsApi'
+import type { WithdrawableSubscription, InstallmentPayment } from '~/composables/useFinanceApi'
 
 definePageMeta({
   middleware: ['auth']
@@ -118,6 +117,16 @@ async function handleCreatePayment() {
   }
 }
 
+async function handlePaymentConfirmed(payment: InstallmentPayment) {
+  currentPayment.value = payment
+  await fetchPayableInstallments()
+  toast.add({
+    title: 'Pagamento confirmado!',
+    description: 'Suas parcelas foram registradas com sucesso.',
+    color: 'success'
+  })
+}
+
 function handleBackFromPix() {
   const cameFromHistory = showPixFromHistory.value
   showPixView.value = false
@@ -160,7 +169,7 @@ function handleWithdrawClick(subscriptionId: string) {
 
 async function handleWithdrawConfirm(
   subscriptionId: string,
-  pixData: { ownerName: string; pixKeyType: string; pixKey: string }
+  pixData: { ownerName: string, pixKeyType: string, pixKey: string }
 ) {
   isWithdrawing.value = true
   const result = await requestPlanWithdrawal(subscriptionId, pixData)
@@ -247,6 +256,7 @@ onMounted(async () => {
         v-if="showPixView && currentPayment"
         :payment="currentPayment"
         @back="handleBackFromPix"
+        @payment-confirmed="handlePaymentConfirmed"
       />
 
       <!-- Installment selection -->
